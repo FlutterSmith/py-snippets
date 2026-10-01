@@ -1,0 +1,14 @@
+splitting: Break one collection into several
+grouping: Bucket items by a key
+counting: Count items or occurrences
+dedupe: Remove or find repeated values
+sets: Union, intersection and difference
+search: Find positions, keys or values
+sorting: Order items by something
+nested: Work through nested data
+mapping: Transform keys or values
+text: Words, cases and characters
+validation: Answer a yes/no question about a value
+conversion: Turn one representation into another
+iteration: Lazy generators and stepping
+calendar: Dates and the calendar

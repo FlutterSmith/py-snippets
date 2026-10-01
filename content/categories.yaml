@@ -1,0 +1,15 @@
+- id: lists
+  label: Lists
+  blurb: Splitting, grouping, de-duplicating and comparing sequences.
+- id: dicts
+  label: Dicts
+  blurb: Inverting, searching, mapping and sorting mappings.
+- id: strings
+  label: Strings
+  blurb: Slugs, naming cases, words and character checks.
+- id: numbers
+  label: Numbers
+  blurb: Conversions, ranges and number checks.
+- id: dates
+  label: Dates
+  blurb: Date ranges, calendar months and weekdays.

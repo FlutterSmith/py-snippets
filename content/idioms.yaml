@@ -1,0 +1,310 @@
+# Helpers that JavaScript needs and Python doesn't. Every example is a doctest.
+- id: first-last
+  group: Lists
+  js: head(items) / last(items)
+  python: items[0] / items[-1]
+  note: Negative indexes count from the end. Both raise IndexError on an empty list.
+  example: |
+    >>> items = [1, 2, 3]
+    >>> items[0], items[-1]
+    (1, 3)
+  upstream: [head, last]
+- id: tail-initial
+  group: Lists
+  js: tail(items) / initial(items)
+  python: items[1:] / items[:-1]
+  note: Slices never raise; on an empty list they return an empty list.
+  example: |
+    >>> items = [1, 2, 3]
+    >>> items[1:], items[:-1], [][1:]
+    ([2, 3], [1, 2], [])
+  upstream: [tail, initial]
+- id: take
+  group: Lists
+  js: take(items, n) / take_right(items, n)
+  python: items[:n] / items[len(items) - n:]
+  note: "Careful: `items[-n:]` returns everything when n is 0."
+  example: |
+    >>> items, n = [1, 2, 3, 4], 0
+    >>> items[:2], items[-n:], items[len(items) - n:]
+    ([1, 2], [1, 2, 3, 4], [])
+  upstream: [take, take-right]
+- id: drop
+  group: Lists
+  js: drop(items, n) / drop_right(items, n)
+  python: items[n:] / items[:len(items) - n]
+  note: The same zero trap applies to `items[:-n]`.
+  example: |
+    >>> items = [1, 2, 3, 4]
+    >>> items[1:], items[:len(items) - 1], items[:-0]
+    ([2, 3, 4], [1, 2, 3], [])
+  upstream: [drop, drop-right]
+- id: build-list
+  group: Lists
+  js: initialize_list_with_range(...) / initialize_list_with_values(n, v)
+  python: list(range(start, stop, step)) / [value] * n
+  note: "`[[]] * 3` repeats one list three times; build mutable items with a comprehension."
+  example: |
+    >>> list(range(0, 10, 3)), [0] * 3
+    ([0, 3, 6, 9], [0, 0, 0])
+    >>> shared = [[]] * 2
+    >>> shared[0].append(1)
+    >>> shared, [[] for _ in range(2)]
+    ([[1], [1]], [[], []])
+  upstream: [initialize-list-with-range, initialize-list-with-values]
+- id: as-list
+  group: Lists
+  js: cast_list(value)
+  python: value if isinstance(value, list) else [value]
+  example: |
+    >>> def as_list(value):
+    ...     return value if isinstance(value, list) else [value]
+    >>> as_list(1), as_list([1])
+    ([1], [1])
+  upstream: [cast-list]
+- id: spread
+  group: Lists
+  js: spread(lists) / [...a, ...b]
+  python: "[*a, *b]"
+  note: Unpacking works with any iterables, and in calls too.
+  example: |
+    >>> a, b = [1, 2], (3,)
+    >>> [*a, *b, 4]
+    [1, 2, 3, 4]
+  upstream: [spread]
+- id: zip-longest
+  group: Lists
+  js: merge(*lists)
+  python: itertools.zip_longest(*lists)
+  note: "`zip` stops at the shortest; `zip_longest` pads with `fillvalue`."
+  example: |
+    >>> from itertools import zip_longest
+    >>> list(zip_longest([1, 2], ["a"], fillvalue="-"))
+    [(1, 'a'), (2, '-')]
+  upstream: [merge]
+- id: random
+  group: Lists
+  js: sample(items) / shuffle(items)
+  python: random.choice(items) / random.sample(items, k=len(items))
+  note: "`random.shuffle` works in place; `sample` returns a new list."
+  example: |
+    >>> import random
+    >>> items = [1, 2, 3, 4]
+    >>> random.choice(items) in items, sorted(random.sample(items, k=len(items)))
+    (True, [1, 2, 3, 4])
+  upstream: [sample, shuffle]
+- id: set-xor
+  group: Lists
+  js: symmetric_difference(a, b)
+  python: set(a) ^ set(b)
+  note: For an order-keeping version, see the difference_by snippet.
+  example: |
+    >>> sorted({1, 2, 3} ^ {1, 2, 4})
+    [3, 4]
+  upstream: [symmetric-difference]
+- id: all-any
+  group: Checks
+  js: every(items, fn) / some(items, fn) / none(items, fn)
+  python: all(...) / any(...) / not any(...)
+  note: All three stop early, and take a generator expression.
+  example: |
+    >>> nums = [2, 4, 5]
+    >>> all(n > 0 for n in nums), any(n % 2 for n in nums), not any(n > 9 for n in nums)
+    (True, True, True)
+  upstream: [every, some, none]
+- id: truthiness
+  group: Checks
+  js: is_empty(value)
+  python: not value
+  note: Empty containers, 0, "" and None are all falsy.
+  example: |
+    >>> not [], not {}, not "", not [0]
+    (True, True, True, False)
+  upstream: [is-empty]
+- id: all-equal
+  group: Checks
+  js: all_equal(items)
+  python: len(set(items)) <= 1
+  note: Needs hashable items; otherwise use `all(x == items[0] for x in items)`.
+  example: |
+    >>> len(set([3, 3, 3])) <= 1, len(set([3, 1])) <= 1
+    (True, False)
+  upstream: [all-equal]
+- id: subset
+  group: Checks
+  js: includes_all(a, b) / includes_any(a, b)
+  python: set(b) <= set(a) / not set(a).isdisjoint(b)
+  example: |
+    >>> a = [1, 2, 3, 4]
+    >>> set([1, 4]) <= set(a), not set(a).isdisjoint([4, 9])
+    (True, True)
+  upstream: [includes-all, includes-any]
+- id: modulo
+  group: Checks
+  js: is_even(n) / is_odd(n) / is_divisible(n, d)
+  python: n % 2 == 0 / n % 2 == 1 / n % d == 0
+  note: "In Python, `-3 % 2` is 1, so the odd check is safe for negatives."
+  example: |
+    >>> 4 % 2 == 0, -3 % 2 == 1, 12 % 4 == 0
+    (True, True, True)
+  upstream: [is-even, is-odd, is-divisible]
+- id: next-default
+  group: Searching
+  js: find(items, fn) / find_last(items, fn)
+  python: next((x for x in items if fn(x)), None)
+  note: Stops at the first match. Search `reversed(items)` for the last one.
+  example: |
+    >>> items = [1, 2, 3, 4]
+    >>> next((x for x in items if x % 2 == 0), None), next((x for x in reversed(items) if x % 2), None)
+    (2, 3)
+  upstream: [find, find-last]
+- id: next-index
+  group: Searching
+  js: find_index(items, fn) / find_last_index(items, fn)
+  python: next((i for i, x in enumerate(items) if fn(x)), -1)
+  note: For an exact value, `items.index(value)` is simpler, but raises ValueError if it's missing.
+  example: |
+    >>> items = [1, 2, 3, 4]
+    >>> next((i for i, x in enumerate(items) if x > 2), -1), items.index(4)
+    (2, 3)
+  upstream: [find-index, find-last-index]
+- id: in-dict
+  group: Dicts
+  js: key_in_dict(d, key)
+  python: key in d
+  example: |
+    >>> d = {"a": 1}
+    >>> "a" in d, "z" in d
+    (True, False)
+  upstream: [key-in-dict]
+- id: dict-views
+  group: Dicts
+  js: keys_only(d) / values_only(d) / dict_to_list(d)
+  python: list(d) / list(d.values()) / list(d.items())
+  note: Iterating a dict yields its keys; you rarely need the list at all.
+  example: |
+    >>> d = {"a": 1, "b": 2}
+    >>> list(d), list(d.values()), list(d.items())
+    (['a', 'b'], [1, 2], [('a', 1), ('b', 2)])
+  upstream: [keys-only, values-only, dict-to-list]
+- id: dict-zip
+  group: Dicts
+  js: to_dictionary(keys, values)
+  python: dict(zip(keys, values, strict=True))
+  note: "`strict=True` catches lists of different lengths."
+  example: |
+    >>> dict(zip(["a", "b"], [1, 2], strict=True))
+    {'a': 1, 'b': 2}
+  upstream: [to-dictionary]
+- id: lambda-check
+  group: Functions
+  js: check_prop(fn, prop)
+  python: "lambda d: fn(d[prop])"
+  note: A lambda reads better than a factory; `operator.itemgetter` covers plain lookups.
+  example: |
+    >>> is_adult = lambda user: user["age"] >= 18
+    >>> is_adult({"age": 20}), is_adult({"age": 9})
+    (True, False)
+  upstream: [check-prop]
+- id: for-loop
+  group: Functions
+  js: for_each(items, fn) / for_each_right(items, fn)
+  python: for x in items / for x in reversed(items)
+  note: A comprehension is for building a list, not for side effects.
+  example: |
+    >>> for x in reversed([1, 2, 3]):
+    ...     print(x)
+    3
+    2
+    1
+  upstream: [for-each, for-each-right]
+- id: partial
+  group: Functions
+  js: curry(fn, *args)
+  python: functools.partial(fn, *args)
+  example: |
+    >>> from functools import partial
+    >>> int_from_binary = partial(int, base=2)
+    >>> int_from_binary("1010")
+    10
+  upstream: [curry]
+- id: conditional
+  group: Functions
+  js: when(predicate, fn)(x)
+  python: fn(x) if predicate(x) else x
+  example: |
+    >>> x = 3
+    >>> x * 2 if x % 2 else x
+    6
+  upstream: [when]
+- id: timer
+  group: Functions
+  js: delay(fn, ms, *args)
+  python: threading.Timer(seconds, fn, args).start()
+  note: Takes seconds, not milliseconds. In async code, use `await asyncio.sleep()`.
+  example: |
+    >>> import threading
+    >>> calls = []
+    >>> timer = threading.Timer(0.01, calls.append, ["done"])
+    >>> timer.start(); timer.join()
+    >>> calls
+    ['done']
+  upstream: [delay]
+- id: first-letter
+  group: Strings and numbers
+  js: capitalize(s) / decapitalize(s)
+  python: s[:1].upper() + s[1:]
+  note: "`str.capitalize()` also lowercases the rest of the string."
+  example: |
+    >>> s = "fooBar"
+    >>> s[:1].upper() + s[1:], s.capitalize(), s[:1].lower() + s[1:]
+    ('FooBar', 'Foobar', 'fooBar')
+  upstream: [capitalize, decapitalize]
+- id: repeat
+  group: Strings and numbers
+  js: n_times_string(s, n)
+  python: s * n
+  example: |
+    >>> "ab" * 3
+    'ababab'
+  upstream: [n-times-string]
+- id: zero-pad
+  group: Strings and numbers
+  js: pad_number(n, width)
+  python: f"{n:0{width}d}" / str(n).zfill(width)
+  example: |
+    >>> n, width = 42, 5
+    >>> f"{n:0{width}d}", str(-42).zfill(5)
+    ('00042', '-0042')
+  upstream: [pad-number]
+- id: reverse-digits
+  group: Strings and numbers
+  js: reverse_number(n)
+  python: int(str(abs(n))[::-1])
+  note: Reverse the text, then put the sign back yourself.
+  example: |
+    >>> n = -1230
+    >>> int(str(abs(n))[::-1]) * (-1 if n < 0 else 1)
+    -321
+  upstream: [reverse-number]
+- id: formulas
+  group: Strings and numbers
+  js: celsius_to_fahrenheit(c) / km_to_miles(km) / ...
+  python: c * 9 / 5 + 32
+  note: A named constant beats a one-line function.
+  example: |
+    >>> KM_PER_MILE = 1.609344
+    >>> 100 * 9 / 5 + 32, (212 - 32) * 5 / 9, round(10 / KM_PER_MILE, 3), 5 * KM_PER_MILE
+    (212.0, 100.0, 6.214, 8.04672)
+  upstream: [celsius-to-fahrenheit, fahrenheit-to-celsius, km-to-miles, miles-to-km]
+- id: iso-dates
+  group: Dates
+  js: from_iso_date(s) / to_iso_date(d)
+  python: date.fromisoformat(s) / d.isoformat()
+  note: Since 3.11, `fromisoformat` accepts most ISO 8601 formats.
+  example: |
+    >>> from datetime import date
+    >>> d = date.fromisoformat("2024-06-15")
+    >>> d.isoformat(), d.year
+    ('2024-06-15', 2024)
+  upstream: [from-iso-date, to-iso-date]

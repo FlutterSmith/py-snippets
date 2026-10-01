@@ -1,0 +1,221 @@
+# "Instead of writing X, use Y." Every example is a doctest; rows whose
+# `since` is newer than the running Python are skipped by the test suite.
+- id: batched
+  instead: chunk(items, size)
+  use: itertools.batched(items, size)
+  since: "3.12"
+  note: Yields tuples, lazily. On 3.13+, `strict=True` raises if the last batch is short.
+  example: |
+    >>> from itertools import batched
+    >>> list(batched("abcdefg", 3))
+    [('a', 'b', 'c'), ('d', 'e', 'f'), ('g',)]
+  upstream: [chunk]
+- id: chain
+  instead: flatten(lists)
+  use: itertools.chain.from_iterable(lists)
+  since: "3.11"
+  note: Flattens one level, lazily. For any depth, see the deep_flatten snippet.
+  example: |
+    >>> from itertools import chain
+    >>> list(chain.from_iterable([[1, 2], [3], [], [4, 5]]))
+    [1, 2, 3, 4, 5]
+  upstream: [flatten]
+- id: gcd-lcm
+  instead: gcd(numbers) / lcm(numbers)
+  use: math.gcd(*numbers) / math.lcm(*numbers)
+  since: "3.11"
+  note: Both take any number of arguments.
+  example: |
+    >>> import math
+    >>> math.gcd(8, 36, 28), math.lcm(4, 6, 10)
+    (4, 60)
+  upstream: [gcd, lcm]
+- id: mean
+  instead: average(*args)
+  use: statistics.mean(values)
+  since: "3.11"
+  note: "`statistics.fmean` is faster and always returns a float."
+  example: |
+    >>> from statistics import fmean, mean
+    >>> mean([1, 2, 3, 4]), fmean([1, 2, 3, 4])
+    (2.5, 2.5)
+  upstream: [average]
+- id: median
+  instead: median(values)
+  use: statistics.median(values)
+  since: "3.11"
+  note: Unlike the hand-rolled version, it doesn't sort your list in place.
+  example: |
+    >>> from statistics import median
+    >>> values = [7, 1, 5, 3]
+    >>> median(values), values
+    (4.0, [7, 1, 5, 3])
+  upstream: [median]
+- id: factorial
+  instead: factorial(n)
+  use: math.factorial(n)
+  since: "3.11"
+  note: Exact for any size, and raises ValueError for negative n.
+  example: |
+    >>> import math
+    >>> math.factorial(10)
+    3628800
+  upstream: [factorial]
+- id: comb
+  instead: binomial_coefficient(n, k)
+  use: math.comb(n, k)
+  since: "3.11"
+  note: "`math.perm(n, k)` counts ordered arrangements."
+  example: |
+    >>> import math
+    >>> math.comb(8, 2), math.perm(8, 2)
+    (28, 56)
+  upstream: [binomial-coefficient]
+- id: accumulate
+  instead: cumsum(values)
+  use: itertools.accumulate(values)
+  since: "3.11"
+  note: Pass a function for running products, maxima and so on.
+  example: |
+    >>> from itertools import accumulate
+    >>> import operator
+    >>> list(accumulate([1, 2, 3, 4])), list(accumulate([1, 2, 3, 4], operator.mul))
+    ([1, 3, 6, 10], [1, 2, 6, 24])
+  upstream: [cumsum]
+- id: counter
+  instead: frequencies(items) / count_occurrences(items, value)
+  use: collections.Counter(items)
+  since: "3.11"
+  note: A missing value counts as 0 instead of raising KeyError.
+  example: |
+    >>> from collections import Counter
+    >>> counts = Counter("mississippi")
+    >>> counts["s"], counts["z"], counts.most_common(2)
+    (4, 0, [('i', 4), ('s', 4)])
+  upstream: [frequencies, count-occurrences]
+- id: nlargest
+  instead: max_n(items, n) / min_n(items, n)
+  use: heapq.nlargest(n, items) / heapq.nsmallest(n, items)
+  since: "3.11"
+  note: Both take `key=`, and beat a full sort when n is small.
+  example: |
+    >>> import heapq
+    >>> heapq.nlargest(2, [4, 1, 9, 7]), heapq.nsmallest(2, ["bb", "a", "ccc"], key=len)
+    ([9, 7], ['a', 'bb'])
+  upstream: [max-n, min-n]
+- id: radians
+  instead: degrees_to_rads(deg) / rads_to_degrees(rad)
+  use: math.radians(deg) / math.degrees(rad)
+  since: "3.11"
+  example: |
+    >>> import math
+    >>> math.radians(180) == math.pi, math.degrees(math.pi / 2)
+    (True, 90.0)
+  upstream: [degrees-to-rads, rads-to-degrees]
+- id: format-int
+  instead: to_binary(n) / to_hex(n)
+  use: bin(n) / hex(n), or format(n, "b") / format(n, "x")
+  since: "3.11"
+  note: "`format` and f-strings drop the prefix and can pad: `f\"{n:08b}\"`."
+  example: |
+    >>> bin(10), hex(255), f"{10:08b}", f"{255:x}"
+    ('0b1010', '0xff', '00001010', 'ff')
+  upstream: [to-binary, to-hex]
+- id: sum-generator
+  instead: sum_by(items, fn)
+  use: sum(fn(x) for x in items)
+  since: "3.11"
+  note: A generator expression; no list is built.
+  example: |
+    >>> sum(len(word) for word in ["one", "three"])
+    8
+  upstream: [sum-by]
+- id: dict-union
+  instead: merge_dictionaries(a, b)
+  use: a | b
+  since: "3.11"
+  note: The right-hand side wins on shared keys. `a |= b` updates in place.
+  example: |
+    >>> {"a": 1, "b": 2} | {"b": 3, "c": 4}
+    {'a': 1, 'b': 3, 'c': 4}
+  upstream: [merge-dictionaries]
+- id: zip-transpose
+  instead: transpose(matrix)
+  use: list(zip(*matrix))
+  since: "3.11"
+  note: Rows come back as tuples; add `strict=True` to reject ragged input.
+  example: |
+    >>> list(zip(*[[1, 2, 3], [4, 5, 6]]))
+    [(1, 4), (2, 5), (3, 6)]
+  upstream: [transpose]
+- id: powerset
+  instead: powerset(items)
+  use: the itertools `powerset` recipe
+  since: "3.11"
+  note: From the itertools docs. It yields subsets lazily, smallest first.
+  example: |
+    >>> from itertools import chain, combinations
+    >>> s = [1, 2, 3]
+    >>> list(chain.from_iterable(combinations(s, r) for r in range(len(s) + 1)))
+    [(), (1,), (2,), (3,), (1, 2), (1, 3), (2, 3), (1, 2, 3)]
+  upstream: [powerset]
+- id: rotate
+  instead: roll(items, offset)
+  use: collections.deque.rotate(offset)
+  since: "3.11"
+  note: In place and O(k), where k is the offset.
+  example: |
+    >>> from collections import deque
+    >>> d = deque([1, 2, 3, 4, 5])
+    >>> d.rotate(2)
+    >>> d
+    deque([4, 5, 1, 2, 3])
+  upstream: [roll]
+- id: reverse
+  instead: reverse(items)
+  use: items[::-1] or reversed(items)
+  since: "3.11"
+  note: Slicing copies; `reversed()` is a lazy view.
+  example: |
+    >>> [1, 2, 3][::-1], "abc"[::-1], list(reversed(range(3)))
+    ([3, 2, 1], 'cba', [2, 1, 0])
+  upstream: [reverse]
+- id: pairwise
+  instead: zip(items, items[1:])
+  use: itertools.pairwise(items)
+  since: "3.11"
+  note: Works on any iterable, not only sequences, and copies nothing.
+  example: |
+    >>> from itertools import pairwise
+    >>> [b - a for a, b in pairwise([1, 4, 9, 16])]
+    [3, 5, 7]
+- id: cache
+  instead: a hand-written memo dict
+  use: "@functools.cache"
+  since: "3.11"
+  note: Unbounded. Use `@functools.lru_cache(maxsize=...)` to cap memory.
+  example: |
+    >>> from functools import cache
+    >>> @cache
+    ... def fib(n):
+    ...     return n if n < 2 else fib(n - 1) + fib(n - 2)
+    >>> fib(80)
+    23416728348467685
+- id: isclose
+  instead: abs(a - b) < 0.0001
+  use: math.isclose(a, b)
+  since: "3.11"
+  note: Relative tolerance by default; pass `abs_tol` when comparing to zero.
+  example: |
+    >>> import math
+    >>> 0.1 + 0.2 == 0.3, math.isclose(0.1 + 0.2, 0.3)
+    (False, True)
+- id: shorten
+  instead: truncate(text, width)
+  use: textwrap.shorten(text, width)
+  since: "3.11"
+  note: Cuts at a word boundary and collapses whitespace.
+  example: |
+    >>> import textwrap
+    >>> textwrap.shorten("The quick brown fox jumps", width=18)
+    'The quick [...]'
