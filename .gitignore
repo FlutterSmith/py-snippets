@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.hypothesis/
+dist/
+*.egg-info/
+
+# Site
+node_modules/
+site/dist/
+site/.astro/
+site/src/generated/
+
+# OS / editors
+.DS_Store
+*.swp
+.idea/
+.vscode/

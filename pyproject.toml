@@ -1,0 +1,75 @@
+[project]
+name = "pysnippets"
+version = "0.1.0"
+description = "Python snippets that still pass: typed functions whose examples run in CI on Python 3.11 to 3.14."
+readme = "README.md"
+license = "MIT AND CC-BY-4.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Ahmed Hamdy" }]
+requires-python = ">=3.11"
+dependencies = []
+classifiers = [
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://fluttersmith.github.io/py-snippets/"
+Source = "https://github.com/FlutterSmith/py-snippets"
+
+[project.scripts]
+snip = "snip.cli:main"
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.140",
+    "mypy>=1.18",
+    "pytest>=8.4",
+    "pyyaml>=6.0.2",
+    "ruff>=0.13",
+    "types-pyyaml>=6.0.12",
+]
+
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pysnippets", "tools/snip"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+src = ["src", "tools", "tests"]
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM", "RUF", "PT", "PTH", "RET", "D"]
+ignore = [
+    "D100", # module docstrings: a snippet module is the function
+    "D104", # package docstrings live in __init__ where they help
+    "D203", # pydocstyle: one style only
+    "D213",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D"]
+"tools/**" = ["D102", "D103", "D105", "D107", "D401"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+mypy_path = ["src", "tools"]
+files = ["src", "tools", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["hypothesis.*"]
+follow_untyped_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["src", "tests"]
+addopts = ["--doctest-modules", "--strict-markers", "-ra"]
