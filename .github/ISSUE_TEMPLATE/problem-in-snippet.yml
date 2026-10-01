@@ -1,0 +1,26 @@
+name: Problem in a snippet
+description: An example is wrong, a claim is inaccurate, or the code has a bug.
+labels: [snippet-bug]
+body:
+  - type: input
+    id: snippet
+    attributes:
+      label: Which snippet?
+      placeholder: https://fluttersmith.github.io/py-snippets/s/chunk-into-n/
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's wrong?
+      description: The smallest input that shows the problem helps most. A doctest is perfect.
+      placeholder: |
+        >>> chunk_into_n([], 0)
+        expected ..., got ...
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      placeholder: "3.13.2"

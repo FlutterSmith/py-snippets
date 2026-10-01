@@ -1,0 +1,57 @@
+name: Freshness
+
+# Weekly: do the examples still pass on the newest CPython (including the next
+# release while it's in beta) and the newest dev tools? If not, open (or
+# update) one issue.
+on:
+  schedule:
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  newest:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.14', '3.15']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - id: check
+        name: Upgrade dev tools, then lint, type-check and test
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          {
+            uv lock --upgrade && uv sync --prerelease=allow
+            echo "## Python"; uv run python --version
+            echo; echo "## Ruff"; uv run ruff check .
+            echo; echo "## Mypy"; uv run mypy
+            echo; echo "## Tests"; uv run pytest
+          } 2>&1 | tee drift.log
+      - name: Open or update the drift issue
+        if: steps.check.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHON: ${{ matrix.python }}
+        run: |
+          {
+            echo "The weekly check against Python $PYTHON and the newest dev tools failed."
+            echo "Snippets affected by these errors need updating."
+            echo; echo '<details><summary>Log</summary>'; echo; echo '```'
+            tail -c 60000 drift.log; echo '```'; echo '</details>'
+          } > body.md
+          number=$(gh issue list --label toolchain-drift --state open --json number --jq '.[0].number')
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --body-file body.md
+          else
+            gh label create toolchain-drift --color F2B705 --description "A snippet no longer passes on the newest toolchain" 2>/dev/null || true
+            gh issue create --title "Toolchain drift: snippets fail on the newest Python or tools" --label toolchain-drift --body-file body.md
+          fi

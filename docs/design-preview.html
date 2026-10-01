@@ -1,0 +1,541 @@
+<title>py-snippets preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,500;0,700;1,400&family=Fragment+Mono&family=Kalam:wght@400&display=swap">
+<style>
+:root{
+  --ground:#F4F7F3; --grid:#E1E8E0; --paper:#FBFCFA; --ink:#132019; --ink-2:#4A5A50; --ink-3:#66766B;
+  --rule:#CFD9D0; --prompt:#2448B8; --prompt-soft:rgba(36,72,184,.09); --pass:#1C7A4A; --fail:#B3362A;
+  --panel:#16211C; --panel-2:#1E2B25; --panel-rule:#2A3A32; --code:#E2EBE5; --code-dim:#7F9288;
+  --marker:#FFD54A; --t-k:#7FD0E6; --t-b:#C9B6FF; --t-s:#A8DCA0; --t-n:#FFB98F; --t-c:#7F9288; --t-p:#9DB8FF;
+  --shadow:0 22px 50px -28px rgba(18,40,28,.5);
+  --display:"Gloock",Georgia,"Times New Roman",serif;
+  --body:"Atkinson Hyperlegible Next","Atkinson Hyperlegible",ui-sans-serif,system-ui,sans-serif;
+  --mono:"Fragment Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --hand:"Kalam","Segoe Print","Bradley Hand",cursive;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0F1713; --grid:#18241E; --paper:#131D18; --ink:#E6EEE8; --ink-2:#9CB0A3; --ink-3:#7E9286;
+  --rule:#22332A; --prompt:#93B4FF; --prompt-soft:rgba(147,180,255,.1); --pass:#5FD49A; --fail:#FF8A7A;
+  --panel:#09100C; --panel-2:#101A15; --panel-rule:#1B2A22; --shadow:none; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --ground:#0F1713; --grid:#18241E; --paper:#131D18; --ink:#E6EEE8; --ink-2:#9CB0A3; --ink-3:#7E9286;
+  --rule:#22332A; --prompt:#93B4FF; --prompt-soft:rgba(147,180,255,.1); --pass:#5FD49A; --fail:#FF8A7A;
+  --panel:#09100C; --panel-2:#101A15; --panel-rule:#1B2A22; --shadow:none; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:400 17px/1.6 var(--body);-webkit-font-smoothing:antialiased;padding-inline:clamp(16px,3vw,32px);padding-block:0 64px;
+  background-color:var(--ground);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:24px 24px;background-position:-1px -1px}
+a{color:inherit;text-decoration-color:var(--prompt);text-decoration-thickness:1.5px;text-underline-offset:3px}
+a:hover{color:var(--prompt)}
+:focus-visible{outline:2px solid var(--prompt);outline-offset:2px;border-radius:2px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
+kbd{font:500 11px/1 var(--mono);border:1px solid var(--rule);border-bottom-width:2px;border-radius:3px;padding:3px 5px;color:var(--ink-2);background:var(--paper)}
+code.i{font:.88em var(--mono);background:var(--prompt-soft);padding:1px 5px;border-radius:2px}
+.wrap{max-width:1200px;margin-inline:auto}
+.label{font:500 11.5px/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2)}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0;letter-spacing:-.005em}
+[hidden]{display:none!important}
+
+.frame-note{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-block:10px;border-bottom:1px dashed var(--rule)}
+.frame-note span{font:12px/1.4 var(--mono);color:var(--ink-3)}
+.views{display:flex;gap:4px;flex-wrap:wrap}
+.views button{font:500 12px/1 var(--mono);padding:8px 10px;border:1px solid transparent;border-radius:2px;color:var(--ink-2)}
+.views button[aria-selected="true"]{border-color:var(--prompt);color:var(--ink);background:var(--prompt-soft)}
+
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in oklab,var(--ground) 90%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--rule);margin-inline:calc(-1*clamp(16px,3vw,32px));padding-inline:clamp(16px,3vw,32px)}
+.top .wrap{display:flex;align-items:center;gap:14px;height:60px}
+.brand{font:400 21px/1 var(--display);text-decoration:none;white-space:nowrap}
+.brand b{font:400 17px var(--mono);color:var(--ink-3);margin:0 2px}
+.brand i{font-style:normal;color:var(--prompt)}
+.spacer{flex:1}
+.search-btn{display:flex;align-items:center;gap:10px;border:1px solid var(--rule);background:var(--paper);border-radius:2px;padding:7px 8px 7px 12px;color:var(--ink-3);font-size:14px;min-width:220px;min-height:40px;justify-content:space-between}
+.tool{display:flex;align-items:center;gap:8px;font:500 12px/1 var(--mono);color:var(--ink-2);padding:8px;border-radius:2px;min-height:40px;text-decoration:none}
+@media (max-width:760px){.search-btn{min-width:0}.search-btn .txt,.hide-sm{display:none}.top .wrap{gap:6px}}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:clamp(24px,4vw,56px);align-items:center;padding-block:clamp(36px,6vw,80px) 44px}
+@media (max-width:960px){.hero{grid-template-columns:1fr}}
+.hero h1{font-size:clamp(44px,6.4vw,78px);line-height:.98}
+.hero h1 em{font-style:italic;color:var(--prompt)}
+.lede{font-size:19px;color:var(--ink-2);max-width:34ch;margin:22px 0 26px}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 16px;border-radius:2px;font-weight:700;font-size:15.5px;text-decoration:none}
+.btn-main{background:var(--ink);color:var(--ground)}
+.btn-main:hover{background:var(--prompt);color:#fff}
+.btn-main kbd{background:transparent;color:var(--ground);border-color:color-mix(in oklab,var(--ground) 40%,transparent)}
+.btn-ghost{border:1px solid var(--rule);background:var(--paper)}
+.btn-ghost:hover{border-color:var(--prompt)}
+.verified{margin-top:26px;font:13px/1.6 var(--mono);color:var(--ink-2);display:flex;gap:10px}
+.verified .dot{width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--pass);flex:none;box-shadow:0 0 0 4px color-mix(in oklab,var(--pass) 20%,transparent)}
+
+/* panels */
+.panel{background:var(--panel);color:var(--code);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;position:relative}
+.panel-head{display:flex;align-items:center;gap:12px;padding:8px 8px 8px 14px;border-bottom:1px solid var(--panel-rule);font:12.5px/1 var(--mono);color:var(--code-dim);min-height:42px}
+.panel-head .f{color:var(--code)}
+.panel-head .ok{color:#5FD49A}
+.panel-head .spacer{flex:1}
+.copy{font:12.5px/1 var(--mono);color:var(--code);padding:7px 8px;border-radius:2px}
+.copy:hover{background:var(--panel-2)}
+pre{margin:0;font:14.5px/1.8 var(--mono);overflow-x:auto;tab-size:4}
+.code-body{display:grid;grid-template-columns:minmax(0,1fr) 220px;position:relative}
+.code-body pre{padding:16px 0;counter-reset:ln}
+.ln{display:block;padding-right:16px;white-space:pre}
+.ln::before{counter-increment:ln;content:counter(ln);display:inline-block;width:38px;padding-right:14px;text-align:right;color:#3D5046;user-select:none}
+.ln.hl{background:rgba(255,213,74,.1);box-shadow:inset 2px 0 var(--marker)}
+.lane{position:relative}
+.note{position:absolute;left:16px;right:10px;font:17px/1.25 var(--hand);color:var(--marker);transform:rotate(-1.2deg)}
+svg.arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
+svg.arrows path{fill:none;stroke:var(--marker);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:stroke-dashoffset .5s cubic-bezier(.3,.7,.2,1)}
+.panel.compact .code-body{grid-template-columns:minmax(0,1fr)}
+.panel.compact .lane{display:none}
+.notes-list{display:none;margin:0;padding:4px 16px 14px 44px;border-top:1px dashed var(--panel-rule);font:17px/1.35 var(--hand);color:var(--marker)}
+.panel.compact .notes-list{display:block}
+.k{color:var(--t-k)}.b{color:var(--t-b)}.s{color:var(--t-s)}.n{color:var(--t-n)}.c{color:var(--t-c);font-style:italic}
+/* repl */
+.repl pre{padding:14px 16px 16px 0}
+.ex{display:grid;grid-template-columns:40px minmax(0,1fr);align-items:start}
+.tick{display:grid;place-items:center;height:26px;font:700 13px/1 var(--mono);color:#5FD49A;opacity:1;transition:transform .12s,opacity .12s}
+.tick.pending{opacity:0;transform:scale(.4)}
+.tick.bad{color:#FF8A7A}
+.p{color:var(--t-p)}
+.out{color:#C6D2CA;display:block}
+.out.bad{color:#FF8A7A}
+.caret{display:inline-block;width:.55em;height:1.1em;vertical-align:-.15em;background:var(--code);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.panel-foot{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;padding:8px 8px 8px 16px;border-top:1px solid var(--panel-rule);font:12.5px/1.4 var(--mono);color:var(--code-dim)}
+.panel-foot a{color:var(--code);text-decoration-color:var(--t-k)}
+
+/* home lower */
+.home-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,8fr);gap:clamp(24px,4vw,56px);border-top:1px solid var(--rule);padding-top:34px}
+@media (max-width:960px){.home-grid{grid-template-columns:1fr}}
+.sec-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px;gap:12px}
+.tree{list-style:none;margin:0;padding:0;font:14.5px/1 var(--mono)}
+.tree .root{padding:6px 0 10px;color:var(--ink-3)}
+.tree summary{list-style:none;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center;padding:8px 4px;min-height:40px;cursor:pointer;border-radius:2px}
+.tree summary::-webkit-details-marker{display:none}
+.tree summary:hover{background:var(--prompt-soft)}
+.tree .br{color:var(--rule);font-weight:700;white-space:pre}
+.tree .nm{color:var(--ink)}
+.tree details[open] .nm{color:var(--prompt)}
+.tree .ct{color:var(--ink-3);font-size:13px;font-variant-numeric:tabular-nums}
+.tree .kids{list-style:none;margin:0;padding:0 0 6px}
+.tree .kids a{display:grid;grid-template-columns:auto 1fr;gap:8px;padding:6px 4px;text-decoration:none;font-size:14px;color:var(--ink-2)}
+.rows{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:13px 6px;border-bottom:1px solid var(--rule);text-decoration:none;background:color-mix(in oklab,var(--ground) 70%,transparent)}
+.row:hover .sig{color:var(--prompt)}
+.sig{font:500 16px/1.3 var(--mono)}
+.sig .args{color:var(--ink-3)}
+.row .sum{display:block;font:14.5px/1.45 var(--body);color:var(--ink-2);margin-top:4px}
+.row .meta{display:flex;gap:12px;font:12px/1 var(--mono);color:var(--ink-3);white-space:nowrap}
+@media (max-width:620px){.row{grid-template-columns:1fr}}
+.stdlib-teaser{margin-top:34px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px 18px;border:1px solid var(--rule);background:var(--paper);text-decoration:none}
+.stdlib-teaser .big{font:400 40px/1 var(--display);color:var(--prompt)}
+@media (max-width:620px){.stdlib-teaser{grid-template-columns:auto 1fr}.stdlib-teaser .go{display:none}}
+
+/* snippet page */
+.snip{max-width:1040px;margin-inline:auto;padding-top:26px}
+.crumbs{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font:13px/1.4 var(--mono);color:var(--ink-3)}
+.crumbs a{text-decoration:none}
+.snip h1{font:400 clamp(34px,5vw,54px)/1.04 var(--display);margin:24px 0 10px;overflow-wrap:anywhere}
+.snip h1 .paren{font-family:var(--mono);font-size:.62em;color:var(--ink-3)}
+.summary{font-size:20px;line-height:1.5;color:var(--ink);max-width:46ch;margin:0 0 18px}
+.meta-line{display:flex;flex-wrap:wrap;gap:6px 18px;font:500 12px/1.4 var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);padding-bottom:20px;border-bottom:1px solid var(--rule);margin-bottom:26px}
+.stack{display:grid;gap:18px}
+.run-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn-run{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border-radius:2px;font-weight:700;background:var(--prompt);color:#fff}
+.btn-run:hover{filter:brightness(1.1)}
+.run-note{font:13px/1.5 var(--mono);color:var(--ink-3)}
+.runner textarea{width:100%;min-height:150px;border:0;outline:none;resize:vertical;background:transparent;color:var(--code);font:14.5px/1.8 var(--mono);padding:14px 16px;tab-size:4}
+.runner .bar{display:flex;gap:10px;align-items:center;padding:8px 10px 8px 16px;border-top:1px solid var(--panel-rule);font:12.5px var(--mono);color:var(--code-dim)}
+.runner .bar button{color:var(--code);border:1px solid var(--panel-rule);padding:7px 12px;border-radius:2px}
+.prose{max-width:64ch}
+.prose h2{font-size:26px;margin:34px 0 10px}
+.prose ul{padding-left:20px;margin:0 0 1em}
+.prose li{margin:.35em 0}
+.cx{font:14px/1.6 var(--mono);color:var(--ink-2);margin:18px 0}
+.cx b{color:var(--ink);font-weight:500}
+.stdlib-strip{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:14px 16px;margin:26px 0;border:1px solid var(--rule);border-left:3px solid var(--prompt);background:var(--paper);max-width:64ch}
+.stdlib-strip .label{grid-row:span 2;align-self:start;padding-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0}
+.chip{font:12.5px/1 var(--mono);padding:7px 9px;border:1px solid var(--rule);border-radius:2px;background:var(--paper);color:var(--ink-2)}
+.chip b{color:var(--pass);font-weight:700;margin-left:4px}
+.credit{font-size:13.5px;color:var(--ink-3);max-width:72ch;margin-top:30px;padding-top:16px;border-top:1px solid var(--rule)}
+
+/* stdlib ledger */
+.ledger-head{padding-top:34px;max-width:860px}
+.ledger-head h1{font-size:clamp(36px,5vw,58px);line-height:1.02;margin:8px 0 12px}
+.ledger-head p{color:var(--ink-2);font-size:18px;max-width:58ch;margin:0}
+.ledger{margin-top:26px;border-top:2px solid var(--ink)}
+.lrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) 64px;gap:18px;padding:14px 4px;border-bottom:1px solid var(--rule);align-items:start;background:color-mix(in oklab,var(--ground) 70%,transparent)}
+.lrow .old{font:15px/1.4 var(--mono);color:var(--ink-3);text-decoration:line-through;text-decoration-color:var(--fail);text-decoration-thickness:1.5px}
+.lrow .new code{font:15px/1.4 var(--mono);color:var(--ink)}
+.lrow .proof{display:block;font:13px/1.5 var(--mono);color:var(--ink-2);margin-top:4px}
+.lrow .proof .p{color:var(--prompt)}
+.lrow .v{font:12px/1.4 var(--mono);color:var(--ink-3);text-align:right}
+.lhead{font:500 11.5px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);background:transparent}
+.lhead .v{text-align:right}
+@media (max-width:640px){.lrow{grid-template-columns:1fr}.lrow .v{text-align:left}.lhead{display:none}}
+
+/* 404 */
+.tb{margin-top:48px;max-width:860px}
+.tb pre{padding:22px 22px;font-size:15px;line-height:1.7;white-space:pre-wrap}
+.tb .err{color:#FF8A7A}
+.tb .dim{color:var(--code-dim)}
+.tb ul{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:6px}
+.tb li a{font-weight:600}
+
+/* tokens */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:14px}
+.sw{border:1px solid var(--rule);background:var(--paper)}
+.sw i{display:block;height:50px;border-bottom:1px solid var(--rule)}
+.sw div{padding:8px 10px;font:12px/1.4 var(--mono);color:var(--ink-2)}
+.sw b{display:block;color:var(--ink);font-weight:500}
+.types{display:grid;gap:16px;margin-top:14px}
+.types div{display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:baseline;border-bottom:1px solid var(--rule);padding-bottom:12px}
+@media (max-width:620px){.types div{grid-template-columns:1fr}}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);opacity:0;background:var(--ink);color:var(--ground);padding:12px 16px;border-radius:2px;font-size:14.5px;max-width:calc(100vw - 32px);z-index:50;transition:opacity .2s,transform .25s;pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div class="frame-note wrap">
+  <span>Design preview · sample content · Run is simulated here (the real site runs Python 3.14 via Pyodide)</span>
+  <div class="views" role="tablist" aria-label="Preview screens">
+    <button role="tab" aria-selected="true" data-view="home">Home</button>
+    <button role="tab" aria-selected="false" data-view="snip">Snippet page</button>
+    <button role="tab" aria-selected="false" data-view="stdlib">Stdlib</button>
+    <button role="tab" aria-selected="false" data-view="nf">404</button>
+    <button role="tab" aria-selected="false" data-view="tokens">Tokens</button>
+  </div>
+</div>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#" data-go="home">fluttersmith<b>/</b><i>py-snippets</i></a>
+    <span class="spacer"></span>
+    <button class="search-btn" type="button" id="search"><span class="txt">Search functions or stdlib</span><kbd>/</kbd></button>
+    <button class="tool" type="button" id="theme" title="Theme (t)"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.8a6.2 6.2 0 0 1 0 12.4z" fill="currentColor"/></svg><span id="theme-l" class="hide-sm">System</span></button>
+    <a class="tool hide-sm" href="https://github.com/FlutterSmith" target="_blank" rel="noopener">GitHub ↗</a>
+  </div>
+</header>
+
+<main class="wrap">
+<!-- HOME -->
+<section data-v="home">
+  <div class="hero">
+    <div>
+      <h1>Python snippets that <em>still pass.</em></h1>
+      <p class="lede">77 small, typed functions with plain explanations. Every example on the page is a doctest, run on Python 3.11 to 3.14.</p>
+      <div class="cta">
+        <button class="btn btn-main" type="button" data-go="snip">Random snippet <kbd>r</kbd></button>
+        <button class="btn btn-ghost" type="button" data-go="stdlib">The stdlib already does this →</button>
+      </div>
+      <p class="verified"><span class="dot"></span><span>Last check: 1 Oct 2026<br>Python 3.11 · 3.12 · 3.13 · 3.14 · 214/214 examples passing</span></p>
+    </div>
+    <figure class="panel repl" style="margin:0" aria-label="Example session">
+      <div class="panel-head"><span class="f">python 3.14</span><span class="ok">✓ doctests</span><span class="spacer"></span><button class="copy" type="button" data-go="snip">Open ↗</button></div>
+      <pre id="hero-repl" aria-live="off"></pre>
+      <div class="panel-foot"><a href="#" data-go="snip">pysnippets.lists.chunk_into_n</a><span>2 of 214 examples</span></div>
+    </figure>
+  </div>
+
+  <div class="home-grid">
+    <nav aria-label="Index">
+      <div class="sec-h"><span class="label">Index</span><span class="label">77 functions</span></div>
+      <ul class="tree">
+        <li class="root" aria-hidden="true">pysnippets/</li>
+        <li><details open><summary><span class="br">├─</span><span class="nm">lists/</span><span class="ct">28</span></summary>
+          <ul class="kids"><li><a href="#" data-go="snip"><span class="br">│  ├─</span>chunk_into_n.py</a></li><li><a href="#" data-go="snip"><span class="br">│  ├─</span>bifurcate_by.py</a></li><li><a href="#" data-go="snip"><span class="br">│  ├─</span>unique_elements.py</a></li><li><a href="#" data-go="snip"><span class="br">│  └─</span>all 28 →</a></li></ul></details></li>
+        <li><details><summary><span class="br">├─</span><span class="nm">dicts/</span><span class="ct">14</span></summary><ul class="kids"><li><a href="#" data-go="snip"><span class="br">│  └─</span>group_by.py</a></li></ul></details></li>
+        <li><details><summary><span class="br">├─</span><span class="nm">strings/</span><span class="ct">12</span></summary><ul class="kids"><li><a href="#" data-go="snip"><span class="br">│  └─</span>slugify.py</a></li></ul></details></li>
+        <li><details><summary><span class="br">├─</span><span class="nm">math/</span><span class="ct">13</span></summary><ul class="kids"><li><a href="#" data-go="snip"><span class="br">│  └─</span>to_roman_numeral.py</a></li></ul></details></li>
+        <li><details><summary><span class="br">└─</span><span class="nm">dates/</span><span class="ct">10</span></summary><ul class="kids"><li><a href="#" data-go="snip"><span class="br">   └─</span>daterange.py</a></li></ul></details></li>
+      </ul>
+    </nav>
+    <div>
+      <div class="sec-h"><span class="label">Latest</span><span class="label">RSS</span></div>
+      <ul class="rows">
+        <li><a class="row" href="#" data-go="snip"><span><span class="sig">chunk_into_n<span class="args">(items, n)</span></span><span class="sum">Split a sequence into n parts of almost equal size.</span></span><span class="meta"><span>O(n)</span><span>3.12+</span></span></a></li>
+        <li><a class="row" href="#" data-go="snip"><span><span class="sig">union_by<span class="args">(a, b, key)</span></span><span class="sum">Combine two lists, deduplicated by a key, keeping first-seen order.</span></span><span class="meta"><span>O(n)</span><span>3.11+</span></span></a></li>
+        <li><a class="row" href="#" data-go="snip"><span><span class="sig">to_roman_numeral<span class="args">(num)</span></span><span class="sum">Convert 1 to 3999 into Roman numerals, with the edge cases handled.</span></span><span class="meta"><span>O(1)</span><span>3.11+</span></span></a></li>
+        <li><a class="row" href="#" data-go="snip"><span><span class="sig">slugify<span class="args">(text)</span></span><span class="sum">Turn any title into a URL-safe slug, accents included.</span></span><span class="meta"><span>O(n)</span><span>3.11+</span></span></a></li>
+      </ul>
+      <a class="stdlib-teaser" href="#" data-go="stdlib"><span class="big">23</span><span><b>The stdlib already does this.</b><br><span style="color:var(--ink-2);font-size:15px">chunk, flatten, median, cumsum… one verified line each, instead of a snippet.</span></span><span class="go label">Open →</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- SNIPPET -->
+<section data-v="snip" hidden>
+  <article class="snip">
+    <div class="crumbs"><span><a href="#" data-go="home">pysnippets</a>.<a href="#" data-go="home">lists</a>.chunk_into_n</span><span>← bifurcate_by &nbsp; compact →</span></div>
+    <h1>chunk_into_n<span class="paren">(items, n)</span></h1>
+    <p class="summary">Split a sequence into <code class="i">n</code> lists of almost equal size. The last one may be shorter.</p>
+    <p class="meta-line"><span>lists</span><span>beginner</span><span>O(n) time</span><span style="color:var(--pass)">✓ 3 examples pass on 3.12 – 3.14</span></p>
+    <div class="stack">
+      <figure class="panel" id="fn-panel" style="margin:0"></figure>
+      <figure class="panel repl" style="margin:0">
+        <div class="panel-head"><span class="f">examples</span><span class="ok">✓ doctest</span><span class="spacer"></span><button class="copy" type="button">Copy</button></div>
+        <pre id="snip-repl"></pre>
+      </figure>
+      <div class="run-row"><button class="btn-run" type="button" id="run">▶ Run in your browser</button><span class="run-note">Edit the code and the examples re-run. Loads Python once (about 7 MB), then it's instant.</span></div>
+      <figure class="panel runner" id="runner" style="margin:0" hidden>
+        <div class="panel-head"><span class="f">python 3.14 · in your browser</span><span class="spacer"></span><button class="copy" type="button" id="reset">Reset</button></div>
+        <textarea id="code" spellcheck="false" aria-label="Editable code"></textarea>
+        <pre id="run-repl" aria-live="polite" style="padding:12px 16px 14px 0;border-top:1px dashed var(--panel-rule)"></pre>
+        <div class="bar"><button type="button" id="rerun">Run again</button><span id="run-status">3 of 3 examples pass</span></div>
+      </figure>
+    </div>
+    <div class="prose">
+      <h2>How it works</h2>
+      <ul>
+        <li><code class="i">ceil(len(items) / n)</code> gives the chunk size, rounding up so nothing is left over.</li>
+        <li>A range with that step marks where each chunk starts, and slicing does the rest.</li>
+        <li>Empty input gives an empty list, not <code class="i">n</code> empty lists.</li>
+      </ul>
+    </div>
+    <p class="cx"><b>Complexity</b> O(n) time · O(n) extra space · <b>Edge cases</b> raises <code class="i">ValueError</code> when n &lt; 1</p>
+    <div class="stdlib-strip"><span class="label">Stdlib</span><span>Need chunks of a <em>fixed size</em> instead? Python 3.12+ has it built in:</span><code class="i" style="justify-self:start">itertools.batched(items, 3)</code></div>
+    <div class="chips" aria-label="Verified on"><span class="chip">3.11 <b style="color:var(--ink-3)">—</b></span><span class="chip">3.12<b>✓</b></span><span class="chip">3.13<b>✓</b></span><span class="chip">3.14<b>✓</b></span><span class="chip" style="border-style:dashed">uses PEP 695 generics</span></div>
+    <p class="credit">Adapted from <a href="https://github.com/30-seconds/30-seconds-of-python" target="_blank" rel="noopener">30-seconds-of-python</a> by 30 seconds of code contributors, licensed CC BY 4.0. Changes: rewritten with type hints, doctests, an empty-input fix and a stdlib note. Not affiliated with 30 seconds of code.</p>
+  </article>
+</section>
+
+<!-- STDLIB -->
+<section data-v="stdlib" hidden>
+  <header class="ledger-head">
+    <span class="label">Cheat sheet · 23 rows · all verified</span>
+    <h1>The stdlib already does this.</h1>
+    <p>Before you paste a helper, check here. Each row replaces a snippet that used to live in this collection, and each proof line runs in CI.</p>
+  </header>
+  <div class="ledger" role="table" aria-label="Instead of writing, use">
+    <div class="lrow lhead" role="row"><span role="columnheader">Instead of writing</span><span role="columnheader">Use</span><span class="v" role="columnheader">Since</span></div>
+  </div>
+</section>
+
+<!-- 404 -->
+<section data-v="nf" hidden>
+  <figure class="panel tb" style="margin-inline:0">
+    <pre><span class="dim">Traceback (most recent call last):
+  File "fluttersmith.github.io/py-snippets", line 404, in &lt;module&gt;</span>
+<span class="err">NameError: name 'chunk_list' is not defined. Did you mean: 'chunk_into_n'?</span></pre>
+  </figure>
+  <div style="max-width:860px;margin-top:22px">
+    <h1 style="font-size:40px">This page doesn't exist.</h1>
+    <p style="color:var(--ink-2);margin:8px 0 0">The suggestion above is a real fuzzy match on the address you typed. Other close ones:</p>
+    <ul style="padding-left:20px"><li><a href="#" data-go="snip">chunk_into_n</a></li><li><a href="#" data-go="stdlib">itertools.batched (stdlib)</a></li></ul>
+  </div>
+</section>
+
+<!-- TOKENS -->
+<section data-v="tokens" hidden>
+  <div style="padding-top:30px;max-width:900px">
+    <h2 style="font-size:30px">Graph paper by day, chalkboard by night</h2>
+    <p style="color:var(--ink-2);margin:6px 0 0">Switch the theme to see both palettes. The code panel stays dark in both, and it is the only object with a shadow.</p>
+    <div class="swatches" id="swatches"></div>
+    <div class="types">
+      <div><span class="label">Display · Gloock</span><span style="font:400 40px/1 var(--display)">Snippets that still pass</span></div>
+      <div><span class="label">Body · Atkinson Next</span><span>Plain explanations, readable at any size.</span></div>
+      <div><span class="label">Code · Fragment Mono</span><span style="font:15px var(--mono)"><span style="color:var(--prompt)">&gt;&gt;&gt;</span> chunk_into_n([1, 2, 3], 2)</span></div>
+      <div><span class="label">Notes · Kalam</span><span style="font:22px var(--hand);color:var(--prompt)">size rounds up</span></div>
+    </div>
+  </div>
+</section>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(() => {
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+
+/* ---- tiny Python highlighter ---- */
+const KW = new Set('def return for in if else elif import from as class with while yield lambda not and or is None True False raise try except pass'.split(' '));
+const BI = new Set('len range list dict set int str sorted sum min max ceil zip map filter enumerate isinstance ValueError Sequence'.split(' '));
+function hl(line) {
+  let out = '';
+  line.replace(/(#.*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|(\b\d+\b)|([A-Za-z_]\w*)|(\s+)|([\s\S])/g, (m, c, s, n, id) => {
+    if (c) out += `<span class="c">${esc(c)}</span>`;
+    else if (s) out += `<span class="s">${esc(s)}</span>`;
+    else if (n) out += `<span class="n">${n}</span>`;
+    else if (id) out += KW.has(id) ? `<span class="k">${id}</span>` : BI.has(id) ? `<span class="b">${id}</span>` : id;
+    else out += esc(m);
+    return m;
+  });
+  return out;
+}
+
+/* ---- function panel with annotations ---- */
+const FN = [
+  'from collections.abc import Sequence',
+  'from math import ceil',
+  '',
+  'def chunk_into_n[T](items: Sequence[T], n: int) -> list[list[T]]:',
+  '    if n < 1:',
+  '        raise ValueError("n must be at least 1")',
+  '    size = ceil(len(items) / n)',
+  '    return [list(items[i:i + size])',
+  '            for i in range(0, len(items), size or 1)]',
+];
+const NOTES = [[3, 'PEP 695 generics: needs 3.12'], [6, 'rounds up, so nothing is left over'], [8, '`size or 1` keeps empty input safe']];
+function buildFn() {
+  const el = $('#fn-panel');
+  el.innerHTML = `<div class="panel-head"><span class="f">chunk_into_n.py</span><span class="ok">✓ ruff · mypy --strict</span><span class="spacer"></span><button class="copy" type="button">Copy</button></div>
+    <div class="code-body"><pre>${FN.map((l, i) => `<span class="ln" data-l="${i}">${hl(l) || ' '}</span>`).join('')}</pre><div class="lane"></div><svg class="arrows" aria-hidden="true"></svg></div>
+    <ol class="notes-list">${NOTES.map(([, t]) => `<li>${esc(t)}</li>`).join('')}</ol>`;
+  layout(el, true);
+  new ResizeObserver(() => layout(el, false)).observe(el);
+}
+function layout(el, animate) {
+  const compact = el.clientWidth < 620;
+  el.classList.toggle('compact', compact);
+  const svg = $('svg.arrows', el), lane = $('.lane', el);
+  svg.innerHTML = '';
+  if (compact) return;
+  if (!lane.children.length) lane.innerHTML = NOTES.map(([, t]) => `<div class="note">${esc(t)}</div>`).join('');
+  const body = $('.code-body', el).getBoundingClientRect(), lb = lane.getBoundingClientRect();
+  let last = -1e9;
+  $$('.note', lane).forEach((note, i) => {
+    const ln = $(`.ln[data-l="${NOTES[i][0]}"]`, el), lr = ln.getBoundingClientRect();
+    const r = document.createRange(); r.selectNodeContents(ln);
+    const right = Math.max(...[...r.getClientRects()].map((x) => x.right));
+    let top = Math.max(lr.top + lr.height / 2 - body.top - 12, last + 10);
+    note.style.top = top + 'px'; last = top + note.offsetHeight;
+    const x0 = lb.left - body.left + 10, y0 = top + 12;
+    const x1 = Math.min(right - body.left + 12, lb.left - body.left - 26), y1 = lr.top + lr.height / 2 - body.top;
+    const cx = (x0 + x1) / 2, cy = Math.min(y0, y1) - 22;
+    const a = Math.atan2(y1 - cy, x1 - cx), h = (t) => `${x1 - 9 * Math.cos(a + t)} ${y1 - 9 * Math.sin(a + t)}`;
+    [`M${x0} ${y0} Q ${cx} ${cy} ${x1} ${y1}`, `M${h(.5)} L${x1} ${y1} L${h(-.5)}`].forEach((d, k) => {
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      p.setAttribute('d', d); p.setAttribute('pathLength', '1');
+      if (animate && !reduced) { p.style.strokeDasharray = '1'; p.style.strokeDashoffset = '1'; p.style.transitionDelay = `${i * 140 + k * 360}ms`; requestAnimationFrame(() => requestAnimationFrame(() => (p.style.strokeDashoffset = '0'))); }
+      svg.appendChild(p);
+    });
+  });
+}
+
+/* ---- REPL rendering ---- */
+const EXAMPLES = [
+  ['chunk_into_n([1, 2, 3, 4, 5, 6, 7], 4)', '[[1, 2], [3, 4], [5, 6], [7]]'],
+  ['chunk_into_n("abcdef", 3)', "[['a', 'b'], ['c', 'd'], ['e', 'f']]"],
+  ['chunk_into_n([], 3)', '[]'],
+];
+function replHtml(examples, state = 'pass') {
+  return examples.map(([expr, out], i) => {
+    const s = Array.isArray(state) ? state[i] : state;
+    return `<span class="ex"><span class="tick ${s === 'pending' ? 'pending' : s === 'fail' ? 'bad' : ''}" title="${s === 'fail' ? 'fails' : 'passed on Python 3.12 to 3.14'}">${s === 'fail' ? '✗' : '✓'}</span><span><span class="p">&gt;&gt;&gt;</span> ${hl(expr)}<span class="out ${s === 'fail' ? 'bad' : ''}">${esc(out)}</span></span></span>`;
+  }).join('');
+}
+
+/* ---- hero: a REPL session that types itself ---- */
+const HERO = [['chunk_into_n(range(7), 3)', '[[0, 1, 2], [3, 4, 5], [6]]'], ['slugify("Hello, Wörld!")', "'hello-world'"]];
+function hero() {
+  const pre = $('#hero-repl');
+  pre.style.padding = '16px 16px 18px 0';
+  if (reduced) { pre.innerHTML = replHtml(HERO); return; }
+  let i = 0, ch = 0, typed = [];
+  const step = () => {
+    if (i >= HERO.length) { pre.innerHTML = replHtml(HERO); return; }
+    const [expr, out] = HERO[i];
+    if (ch <= expr.length) {
+      const partial = HERO.slice(0, i).map((e) => e);
+      pre.innerHTML = replHtml(partial) + `<span class="ex"><span class="tick pending">✓</span><span><span class="p">&gt;&gt;&gt;</span> ${hl(expr.slice(0, ch))}<span class="caret"></span></span></span>`;
+      ch += 2; setTimeout(step, 22);
+    } else {
+      pre.innerHTML = replHtml(HERO.slice(0, i + 1), HERO.slice(0, i + 1).map((_, k) => (k === i ? 'pending' : 'pass')));
+      requestAnimationFrame(() => requestAnimationFrame(() => { const t = $$('.tick', pre)[i]; if (t) t.classList.remove('pending'); }));
+      i++; ch = 0; setTimeout(step, 260);
+    }
+  };
+  step();
+}
+
+/* ---- run panel (simulated) ---- */
+function run() {
+  const code = $('#code').value;
+  const broken = !/ceil\(len\(items\) \/ n\)/.test(code) || !/size or 1/.test(code);
+  const states = broken ? ['fail', 'fail', 'pass'] : ['pass', 'pass', 'pass'];
+  const outs = broken ? [['chunk_into_n([1, 2, 3, 4, 5, 6, 7], 4)', 'Expected [[1, 2], [3, 4], [5, 6], [7]] · got something else'], ['chunk_into_n("abcdef", 3)', 'Expected [[\'a\', \'b\'], …] · got something else'], EXAMPLES[2]] : EXAMPLES;
+  $('#run-repl').innerHTML = replHtml(outs, states.map(() => 'pending'));
+  setTimeout(() => {
+    $('#run-repl').innerHTML = replHtml(outs, states);
+    const ok = states.filter((s) => s === 'pass').length;
+    $('#run-status').textContent = `${ok} of 3 examples pass${broken ? ' · the preview checks two key lines; the real site runs your code' : ''}`;
+  }, reduced ? 0 : 220);
+}
+$('#run').addEventListener('click', () => {
+  const r = $('#runner');
+  if (!r.hidden) return;
+  r.hidden = false;
+  $('#code').value = FN.join('\n');
+  $('#run-repl').innerHTML = '';
+  $('#run-status').textContent = 'Loading Python 3.14… (simulated)';
+  setTimeout(run, reduced ? 0 : 700);
+  $('#code').focus();
+});
+$('#rerun').addEventListener('click', run);
+$('#reset').addEventListener('click', () => { $('#code').value = FN.join('\n'); run(); });
+let deb; $('#code').addEventListener('input', () => { clearTimeout(deb); deb = setTimeout(run, 400); });
+$('#code').addEventListener('keydown', (e) => { if (e.key === 'Tab') { e.preventDefault(); const t = e.target, s = t.selectionStart; t.value = t.value.slice(0, s) + '    ' + t.value.slice(t.selectionEnd); t.selectionStart = t.selectionEnd = s + 4; } });
+
+/* ---- stdlib ledger ---- */
+const LEDGER = [
+  ['chunk(lst, size)', 'itertools.batched(items, 3)', 'list(batched("abcdefg", 3))', "[('a','b','c'), ('d','e','f'), ('g',)]", '3.12'],
+  ['flatten(lst)', 'itertools.chain.from_iterable(lists)', 'list(chain.from_iterable([[1, 2], [3]]))', '[1, 2, 3]', '3.0'],
+  ['median(lst)', 'statistics.median(values)', 'median([3, 1, 2])', '2', '3.4'],
+  ['average(*args)', 'statistics.mean(values)', 'mean([1, 2, 3, 4])', '2.5', '3.4'],
+  ['cumsum(lst)', 'itertools.accumulate(values)', 'list(accumulate([1, 2, 3]))', '[1, 3, 6]', '3.2'],
+  ['frequencies(lst)', 'collections.Counter(items)', "Counter('abca')", "Counter({'a': 2, 'b': 1, 'c': 1})", '3.1'],
+  ['lcm(numbers)', 'math.lcm(*numbers)', 'lcm(4, 6, 10)', '60', '3.9'],
+  ['merge_dictionaries(*dicts)', 'a | b', "{'x': 1} | {'y': 2}", "{'x': 1, 'y': 2}", '3.9'],
+  ['transpose(lst)', 'list(zip(*matrix))', 'list(zip(*[[1, 2], [3, 4]]))', '[(1, 3), (2, 4)]', '3.0'],
+  ['max_n(lst, n)', 'heapq.nlargest(n, items)', 'nlargest(2, [4, 9, 1, 7])', '[9, 7]', '3.0'],
+];
+$('.ledger').insertAdjacentHTML('beforeend', LEDGER.map(([old, use, ex, out, v]) =>
+  `<div class="lrow" role="row"><span class="old" role="cell">${esc(old)}</span><span class="new" role="cell"><code>${esc(use)}</code><span class="proof"><span class="p">&gt;&gt;&gt;</span> ${esc(ex)}<br>${esc(out)} <span style="color:var(--pass)">✓</span></span></span><span class="v" role="cell">${v}+</span></div>`).join(''));
+
+/* ---- tokens ---- */
+const SW = [['--ground', 'Ground'], ['--grid', 'Grid'], ['--paper', 'Paper'], ['--ink', 'Ink'], ['--prompt', 'Prompt ink'], ['--pass', 'Pass'], ['--fail', 'Fail'], ['--panel', 'Panel'], ['--marker', 'Marker']];
+function swatches() {
+  const cs = getComputedStyle(document.documentElement);
+  $('#swatches').innerHTML = SW.map(([v, n]) => `<div class="sw"><i style="background:var(${v})"></i><div><b>${n}</b>${cs.getPropertyValue(v).trim()}</div></div>`).join('');
+}
+
+/* ---- views, theme, keys ---- */
+function go(v) {
+  const doit = () => {
+    $$('[data-v]').forEach((s) => (s.hidden = s.dataset.v !== v));
+    $$('.views button').forEach((b) => b.setAttribute('aria-selected', b.dataset.view === v));
+    if (v === 'snip') { buildFn(); $('#snip-repl').innerHTML = replHtml(EXAMPLES); $('#snip-repl').style.padding = '14px 16px 16px 0'; }
+    if (v === 'home') hero();
+    if (v === 'tokens') swatches();
+    scrollTo({ top: 0 });
+  };
+  document.startViewTransition && !reduced ? document.startViewTransition(doit) : doit();
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-go]'); if (t) { e.preventDefault(); go(t.dataset.go); }
+  const v = e.target.closest('.views button'); if (v) go(v.dataset.view);
+});
+const THEMES = ['system', 'light', 'dark']; let theme = 'system';
+try { theme = localStorage.getItem('ps-theme') || 'system'; } catch {}
+function applyTheme() {
+  theme === 'system' ? document.documentElement.removeAttribute('data-theme') : document.documentElement.setAttribute('data-theme', theme);
+  $('#theme-l').textContent = theme[0].toUpperCase() + theme.slice(1);
+  if (!$('[data-v="tokens"]').hidden) swatches();
+}
+$('#theme').addEventListener('click', () => { theme = THEMES[(THEMES.indexOf(theme) + 1) % 3]; try { localStorage.setItem('ps-theme', theme); } catch {} applyTheme(); });
+const toast = (m) => { const t = $('#toast'); t.textContent = m; t.classList.add('on'); setTimeout(() => t.classList.remove('on'), 2600); };
+$('#search').addEventListener('click', () => toast('Search finds functions, stdlib names and doctest output. (Same Pagefind search as fluttersmith/tips.)'));
+document.addEventListener('keydown', (e) => {
+  if (e.target.closest('textarea, input') || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (e.key === 'r') go('snip'); else if (e.key === 't') $('#theme').click(); else if (e.key === '/') { e.preventDefault(); $('#search').click(); }
+});
+applyTheme(); hero();
+})();
+</script>

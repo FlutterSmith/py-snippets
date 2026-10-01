@@ -1,0 +1,16 @@
+name: Snippet idea
+description: Suggest a function worth adding.
+labels: [snippet-idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: What should it do?
+      description: One sentence, plus an example call and its result.
+    validations:
+      required: true
+  - type: textarea
+    id: stdlib
+    attributes:
+      label: Does the standard library already do it?
+      description: If it does, it belongs on the stdlib cheat sheet instead. That's fine too.
