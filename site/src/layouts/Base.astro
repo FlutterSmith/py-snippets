@@ -1,0 +1,106 @@
+---
+import '@fontsource/gloock/latin-400.css';
+import '@fontsource-variable/atkinson-hyperlegible-next/wght.css';
+import '@fontsource-variable/atkinson-hyperlegible-next/wght-italic.css';
+import '@fontsource/fragment-mono/latin-400.css';
+import '@fontsource/kalam/latin-400.css';
+import '../styles/global.css';
+
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { site, snippets, url } from '../lib/site';
+
+interface Props {
+  title?: string;
+  description: string;
+  slug?: string;
+  noindex?: boolean;
+  page?: string;
+}
+
+const { title, description, slug, noindex = false, page } = Astro.props;
+const fullTitle = title ? `${title} · ${site.name}` : `${site.name}: Python snippets that still pass`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const slugs = JSON.stringify(snippets.map((s) => s.slug));
+const ogImage = new URL(url('og.png'), Astro.site);
+---
+
+<!doctype html>
+<html lang="en" data-base={url()} data-slug={slug} data-page={page}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Ahmed Hamdy" />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <meta property="og:type" content={slug ? 'article' : 'website'} />
+    <meta property="og:title" content={title ?? site.name} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1280" />
+    <meta property="og:image:height" content="640" />
+    <meta property="og:image:alt" content="Python snippets that still pass: a REPL session where every example has a tick." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#F4F7F3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0F1713" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href={url('favicon.svg')} type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={site.name} href={url('rss.xml')} />
+    <script is:inline>
+      // Set the theme before first paint so there is no flash.
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        try {
+          var t = localStorage.getItem('ps-theme');
+          if (t === 'light' || t === 'dark') d.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <Header />
+    <main id="main" class="wrap">
+      <slot />
+    </main>
+    <Footer />
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <div class="pal-bg" id="pal" hidden>
+      <div class="pal" role="dialog" aria-modal="true" aria-label="Search snippets">
+        <label class="visually-hidden" for="q">Search snippets and the stdlib cheat sheet</label>
+        <input id="q" type="search" placeholder="A function, an idea or a stdlib name, e.g. batched" autocomplete="off" spellcheck="false" />
+        <ul id="results" aria-live="polite"></ul>
+        <div class="pal-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> move</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span></div>
+      </div>
+    </div>
+
+    <div class="pal-bg" id="help" hidden>
+      <div class="pal" role="dialog" aria-modal="true" aria-labelledby="help-title">
+        <div class="sec-h help-h">
+          <span class="label" id="help-title">Keyboard shortcuts</span>
+          <button type="button" class="tool" data-close-help>Close</button>
+        </div>
+        <dl class="help-list">
+          <dt><kbd>/</kbd></dt><dd>Search</dd>
+          <dt><kbd>r</kbd></dt><dd>Random snippet</dd>
+          <dt><kbd>←</kbd> <kbd>→</kbd></dt><dd>Previous / next snippet</dd>
+          <dt><kbd>c</kbd></dt><dd>Copy the function</dd>
+          <dt><kbd>e</kbd></dt><dd>Run it in your browser</dd>
+          <dt><kbd>Ctrl</kbd> <kbd>↵</kbd></dt><dd>Run again, in the editor</dd>
+          <dt><kbd>t</kbd></dt><dd>Theme: system, light, dark</dd>
+          <dt><kbd>?</kbd></dt><dd>This list</dd>
+        </dl>
+      </div>
+    </div>
+
+    <script type="application/json" id="snip-slugs" set:html={slugs} />
+    <script>
+      import '../scripts/app.ts';
+    </script>
+  </body>
+</html>

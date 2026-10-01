@@ -1,0 +1,20 @@
+---
+import { site, url } from '../lib/site';
+---
+
+<footer class="foot">
+  <div class="wrap">
+    <p>
+      MIT for the project; adapted material <a href={site.ccby}>CC BY 4.0</a>. Not affiliated with 30 seconds of code.{' '}
+      <a href={site.attribution}>Attribution</a>.
+    </p>
+    <nav aria-label="Footer">
+      <a href={url('all/')}>All snippets</a>
+      <a href={url('stdlib/')}>Stdlib</a>
+      <a href={url('idioms/')}>Idioms</a>
+      <a href={url('about/')}>About</a>
+      <a href={url('rss.xml')}>RSS</a>
+      <a href={site.repo}>GitHub</a>
+    </nav>
+  </div>
+</footer>

@@ -1,0 +1,135 @@
+---
+import Panel from '../components/Panel.astro';
+import SnippetRow from '../components/SnippetRow.astro';
+import Base from '../layouts/Base.astro';
+import { toPycon } from '../lib/panel.mjs';
+import { categories, exampleCount, formatDate, idiomRows, rangeShort, site, snippet, snippets, snippetUrl, stdlibRows, url } from '../lib/site';
+
+const total = snippets.length;
+const verified = site.verifiedAt ? formatDate(site.verifiedAt) : null;
+
+// The hero session: one real doctest from each of two snippets.
+const heroPicks = [
+  { slug: 'chunk-into-n', index: 0 },
+  { slug: 'slugify', index: 1 },
+]
+  .map(({ slug, index }) => ({ s: snippet(slug), index }))
+  .filter((p) => p.s && p.s.examples[p.index]);
+const hero = heroPicks.length === 2 ? heroPicks : snippets.slice(0, 2).map((s) => ({ s, index: 0 }));
+const heroCode = toPycon(hero.map(({ s, index }) => s!.examples[index]));
+---
+
+<Base description={`${total} small, typed Python functions. Every example is a doctest, run on Python ${rangeShort()}.`} page="home">
+  <section class="hero">
+    <div>
+      <h1>Python snippets that <em>still pass.</em></h1>
+      <p class="lede">
+        {total} small, typed functions with plain explanations. Every example on the page is a doctest, run on Python {site.pythons[0]} to {
+          site.pythons[site.pythons.length - 1]
+        }.
+      </p>
+      <div class="cta">
+        <button class="btn btn-main" type="button" data-random>Random snippet <kbd>r</kbd></button>
+        <a class="btn btn-ghost" href={url('stdlib/')}>The stdlib already does this →</a>
+      </div>
+      <p class="verified">
+        <span class="dot" aria-hidden="true"></span>
+        <span>
+          {total} snippets, tested on {rangeShort()}. {verified ? `Last check: ${verified}.` : 'Checked on every push.'}<br />
+          Python {site.pythons.join(' · ')} · {exampleCount}/{exampleCount} examples passing
+        </span>
+      </p>
+    </div>
+    <div class="hero-repl" data-anim="wait">
+      <Panel
+        kind="repl"
+        code={heroCode}
+        range={site.pythons}
+        label="python"
+        footLinks={hero.map(({ s }) => ({ href: snippetUrl(s!.slug), text: `${s!.category}.${s!.functions[0].name}` }))}
+        footNote={`2 of ${exampleCount} examples`}
+      />
+    </div>
+  </section>
+
+  <div class="home-grid" id="index">
+    <nav class="tree-nav" aria-labelledby="tree-label">
+      <div class="sec-h"><span class="label" id="tree-label">Package</span><a class="label" href={url('all/')}>{total} modules</a></div>
+      <ul class="tree">
+        <li class="root" aria-hidden="true">pysnippets/</li>
+        {
+          categories.map((c, i) => {
+            const last = i === categories.length - 1;
+            const kids = snippets.filter((s) => s.category === c.id);
+            const shown = kids.slice(0, 4);
+            const pipe = last ? '   ' : '│  ';
+            return (
+              <li>
+                <details open={i === 0}>
+                  <summary>
+                    <span class="br" aria-hidden="true">{last ? '└─' : '├─'}</span>
+                    <span class="nm">{c.id}/</span>
+                    <span class="ct">{c.count}</span>
+                  </summary>
+                  <ul class="kids">
+                    {shown.map((k) => (
+                      <li>
+                        <a href={snippetUrl(k.slug)}>
+                          <span class="br" aria-hidden="true">{pipe}├─</span>
+                          {k.module.split('/').pop()}
+                        </a>
+                      </li>
+                    ))}
+                    <li>
+                      <a href={url(`c/${c.id}/`)}>
+                        <span class="br" aria-hidden="true">{pipe}└─</span>
+                        all {c.count} in {c.id} →
+                      </a>
+                    </li>
+                  </ul>
+                </details>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </nav>
+
+    <div class="index-list">
+      {
+        categories.map((c) => (
+          <section class="pkg" aria-labelledby={`pkg-${c.id}`} id={c.id}>
+            <div class="sec-h">
+              <h2 class="pkg-h" id={`pkg-${c.id}`}>
+                <a href={url(`c/${c.id}/`)}>
+                  pysnippets.<b>{c.id}</b>
+                </a>
+              </h2>
+              <span class="label">{c.blurb.replace(/\.$/, '')}</span>
+            </div>
+            <ul class="rows">
+              {snippets
+                .filter((s) => s.category === c.id)
+                .map((s) => (
+                  <SnippetRow s={s} />
+                ))}
+            </ul>
+          </section>
+        ))
+      }
+
+      <div class="teasers">
+        <a class="teaser" href={url('stdlib/')}>
+          <span class="big">{stdlibRows.length}</span>
+          <span><b>The stdlib already does this.</b><span class="t-sub">Chunk, flatten, median, transpose… one verified line each, instead of a snippet.</span></span>
+          <span class="go label" aria-hidden="true">Open →</span>
+        </a>
+        <a class="teaser" href={url('idioms/')}>
+          <span class="big">{idiomRows.length}</span>
+          <span><b>Python idioms for JavaScript developers.</b><span class="t-sub">The lodash-style helpers you reach for, and what Python writes instead.</span></span>
+          <span class="go label" aria-hidden="true">Open →</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</Base>

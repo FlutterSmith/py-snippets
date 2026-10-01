@@ -1,0 +1,34 @@
+---
+import SnippetRow from '../../components/SnippetRow.astro';
+import Base from '../../layouts/Base.astro';
+import { categories, snippets, url } from '../../lib/site';
+
+export function getStaticPaths() {
+  return categories.map((c) => ({ params: { id: c.id }, props: { category: c } }));
+}
+
+const { category } = Astro.props;
+const list = snippets.filter((s) => s.category === category.id);
+---
+
+<Base title={`pysnippets.${category.id}`} description={`${category.blurb} ${list.length} typed Python functions with doctests.`}>
+  <header class="page-head">
+    <span class="label">Package · {list.length} modules</span>
+    <h1>pysnippets.<span class="pkg-name">{category.id}</span></h1>
+    <p>{category.blurb}</p>
+    <ul class="chips-nav" aria-label="Packages">
+      {
+        categories.map((c) => (
+          <li>
+            <a href={url(`c/${c.id}/`)} aria-current={c.id === category.id ? 'page' : undefined}>
+              {c.id}/ <span>{c.count}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </header>
+  <ul class="rows list">
+    {list.map((s) => <SnippetRow s={s} />)}
+  </ul>
+</Base>

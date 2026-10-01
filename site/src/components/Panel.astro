@@ -1,0 +1,33 @@
+---
+// Server-renders a code panel, REPL panel or ledger proof from hast.
+import { toHtml } from 'hast-util-to-html';
+
+import { buildPanel, buildProof, buildRepl, el, text } from '../lib/panel.mjs';
+
+interface Props {
+  kind: 'code' | 'repl' | 'proof';
+  code: string;
+  meta?: string;
+  range?: string[];
+  label?: string;
+  class?: string;
+  footLinks?: { href: string; text: string }[];
+  footNote?: string;
+}
+const { kind, code, meta, range, label, footLinks, footNote } = Astro.props;
+const foot = footLinks
+  ? [
+      el(
+        'span',
+        { className: ['foot-links'] },
+        footLinks.flatMap((l, i) => [...(i ? [text(' · ')] : []), el('a', { href: l.href }, [text(l.text)])]),
+      ),
+      ...(footNote ? [el('span', {}, [text(footNote)])] : []),
+    ]
+  : undefined;
+const tree =
+  kind === 'code' ? await buildPanel({ code, meta }) : kind === 'repl' ? await buildRepl({ code, range, label, foot }) : buildProof({ code, range });
+if (Astro.props.class) tree.properties.className = [...(tree.properties.className ?? []), Astro.props.class];
+---
+
+<Fragment set:html={toHtml(tree)} />

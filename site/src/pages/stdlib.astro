@@ -1,0 +1,94 @@
+---
+import Panel from '../components/Panel.astro';
+import Base from '../layouts/Base.astro';
+import { md, rangeShort, site, stdlibRows, versions } from '../lib/site';
+
+const rows = stdlibRows;
+---
+
+<Base title="The stdlib already does this" description={`${rows.length} helpers people keep rewriting, and the Python standard library tool that already does each one. Every proof is a doctest.`} page="stdlib">
+  <div data-pagefind-body data-pagefind-meta="pkg:stdlib">
+    <header class="page-head ledger-head">
+      <span class="label" data-pagefind-ignore>Cheat sheet · {rows.length} rows · every proof runs in CI</span>
+      <h1 data-pagefind-meta="title">The stdlib already does this.</h1>
+      <p>
+        Before you paste a helper, check here. Each row is a function people keep rewriting, and the standard library tool that already does it.
+        The proof under each one is a doctest, run on Python {rangeShort()}.
+      </p>
+    </header>
+
+    <div class="filter" data-pagefind-ignore>
+      <label class="label" for="filter">Filter</label>
+      <input id="filter" type="search" placeholder="flatten, median, Counter…" autocomplete="off" spellcheck="false" aria-controls="ledger" />
+      <span class="filter-count" id="filter-count" role="status" aria-live="polite">{rows.length} rows</span>
+    </div>
+
+    <div class="ledger" id="ledger" role="table" aria-label="Instead of writing, use">
+      <div class="lrow lhead" role="row">
+        <span role="columnheader">Instead of writing…</span>
+        <span role="columnheader">Use…</span>
+        <span class="v" role="columnheader">Since</span>
+      </div>
+      {
+        rows.map((r) => (
+          <div class="lrow" role="row" id={r.id} data-filter={`${r.instead} ${r.use} ${r.note ?? ''} ${r.example}`.toLowerCase()}>
+            <span class="old" role="cell">
+              <span class="visually-hidden">Instead of </span>
+              <code>{r.instead}</code>
+              {r.upstream.length > 0 && (
+                <span class="from" data-pagefind-ignore>
+                  replaces{' '}
+                  {r.upstream.map((u, i) => (
+                    <>
+                      {i > 0 && ', '}
+                      <a href={u.url}>{u.name}</a>
+                    </>
+                  ))}
+                </span>
+              )}
+            </span>
+            <span class="new" role="cell">
+              <span class="visually-hidden">use </span>
+              {r.use.includes('`') ? <span class="use" set:html={md(r.use)} /> : <code class="use">{r.use}</code>}
+              {r.note && <span class="note-t" set:html={md(r.note)} />}
+              <Panel kind="proof" code={r.example} range={versions(r.since)} />
+            </span>
+            <span class="v" role="cell">
+              <span class="ver">{r.since}+</span>
+            </span>
+          </div>
+        ))
+      }
+      <p class="ledger-empty" id="ledger-empty" hidden>No row matches. Try a shorter word, or <a href="#" data-open-search>search the snippets</a>.</p>
+    </div>
+
+    <p class="credit" data-pagefind-ignore>
+      Linked names in the left column are the original snippets in <a href={site.upstreamRepo}>30-seconds-of-python</a> by the 30 seconds of code
+      contributors, <a href={site.ccby}>CC BY 4.0</a>. Each was replaced by the standard library call next to it. Not affiliated with 30 seconds of
+      code.
+    </p>
+  </div>
+  <script>
+    const input = document.getElementById('filter') as HTMLInputElement | null;
+    const rows = [...document.querySelectorAll<HTMLElement>('.lrow[data-filter]')];
+    const count = document.getElementById('filter-count');
+    const empty = document.getElementById('ledger-empty');
+    const apply = () => {
+      const words = (input?.value ?? '').toLowerCase().split(/\s+/).filter(Boolean);
+      let shown = 0;
+      for (const row of rows) {
+        const hit = words.every((w) => row.dataset.filter!.includes(w));
+        row.hidden = !hit;
+        if (hit) shown++;
+      }
+      if (count) count.textContent = words.length ? `${shown} of ${rows.length} rows` : `${rows.length} rows`;
+      if (empty) empty.hidden = shown > 0;
+    };
+    input?.addEventListener('input', apply);
+    const q = new URLSearchParams(location.search).get('q');
+    if (input && q) {
+      input.value = q;
+      apply();
+    }
+  </script>
+</Base>

@@ -1,0 +1,25 @@
+---
+import { args, md, type SnippetMeta, snippetUrl, versions } from '../lib/site';
+
+interface Props {
+  s: SnippetMeta;
+}
+const { s } = Astro.props;
+const [fn, ...more] = s.functions;
+const big = s.complexity.match(/^O\([^)]*\)/)?.[0] ?? s.complexity;
+---
+
+<li>
+  <a class="row" href={snippetUrl(s.slug)}>
+    <span class="row-main">
+      <span class="sig" style={`view-transition-name: sig-${s.slug}`}
+        >{fn.name}<span class="args">({args(fn.signature)})</span>{more.length > 0 && <span class="more"> +{more.length}</span>}</span
+      >
+      <span class="sum" set:html={md(s.summary)} />
+    </span>
+    <span class="meta">
+      <span title={s.complexity}>{big}</span>
+      <span title={`Doctests pass on Python ${versions(s.since).join(', ')}`}>{s.since}+</span>
+    </span>
+  </a>
+</li>

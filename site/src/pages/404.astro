@@ -1,0 +1,77 @@
+---
+import Base from '../layouts/Base.astro';
+import { snippets, snippetUrl, url } from '../lib/site';
+
+// Every name the "Did you mean" can suggest: slugs and function names.
+const names = snippets.flatMap((s) => [
+  [s.slug, s.slug, s.functions[0].name] as const,
+  ...s.functions.map((f) => [f.name, s.slug, f.name] as const),
+]);
+const fallback = snippets[0];
+---
+
+<Base title="Not found" description="This page doesn't exist." noindex page="404">
+  <div class="nf">
+    <figure class="panel tb">
+      <pre
+        aria-label="Error"><span class="dim">Traceback (most recent call last):
+  File "fluttersmith.github.io", line 404, in &lt;module&gt;</span>
+<span class="err">NameError: name '<span id="nf-name">this_page</span>' is not defined. Did you mean: '<a id="nf-guess" href={snippetUrl(fallback.slug)}>{fallback.functions[0].name}</a>'?</span></pre>
+    </figure>
+    <div class="nf-text">
+      <h1>This page doesn't exist.</h1>
+      <p>
+        The suggestion above is the closest snippet name to the address you typed. Press <kbd>/</kbd> to search, or try:
+      </p>
+      <ul>
+        <li><a href={url('all/')}>All snippets</a></li>
+        <li><a href={url('stdlib/')}>The stdlib cheat sheet</a></li>
+        <li><a href={url()}>The home page</a></li>
+      </ul>
+    </div>
+  </div>
+  <script type="application/json" id="nf-names" set:html={JSON.stringify(names)} />
+  <script>
+    // A real "Did you mean": Levenshtein distance from the last URL segment
+    // to every snippet slug and function name.
+    function distance(a: string, b: string): number {
+      const row = Array.from({ length: b.length + 1 }, (_, j) => j);
+      for (let i = 1; i <= a.length; i++) {
+        let prev = row[0];
+        row[0] = i;
+        for (let j = 1; j <= b.length; j++) {
+          const cur = row[j];
+          row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+          prev = cur;
+        }
+      }
+      return row[b.length];
+    }
+    const names: [string, string, string][] = JSON.parse(document.getElementById('nf-names')?.textContent ?? '[]');
+    const base = document.documentElement.dataset.base ?? '/';
+    const segment = decodeURIComponent(location.pathname.split('/').filter(Boolean).pop() ?? '')
+      .replace(/\.(html?|py|md)$/i, '')
+      .toLowerCase();
+    const key = (s: string) => s.replace(/[-_\s]+/g, '_');
+    if (segment && names.length) {
+      const target = key(segment);
+      let best = names[0];
+      let score = Infinity;
+      for (const n of names) {
+        const d = distance(target, key(n[0])) / Math.max(target.length, n[0].length);
+        if (d < score) {
+          score = d;
+          best = n;
+        }
+      }
+      const guess = document.getElementById('nf-guess') as HTMLAnchorElement | null;
+      if (guess) {
+        guess.textContent = best[2];
+        guess.href = `${base}s/${best[1]}/`;
+      }
+      const ident = target.replace(/[^a-z0-9_]/g, '_').replace(/^(\d)/, '_$1');
+      const name = document.getElementById('nf-name');
+      if (name && ident) name.textContent = ident;
+    }
+  </script>
+</Base>

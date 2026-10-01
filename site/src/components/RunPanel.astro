@@ -1,0 +1,48 @@
+---
+import { extractNotes, toPycon } from '../lib/panel.mjs';
+import { pyodide, type SnippetMeta } from '../lib/site';
+
+interface Props {
+  s: SnippetMeta;
+}
+const { s } = Astro.props;
+const code = extractNotes(s.code).code + '\n';
+const examples = toPycon(s.examples);
+const file = s.module.split('/').pop();
+---
+
+<div class="run-row" data-pagefind-ignore>
+  <button class="btn-run" id="run-btn" type="button" aria-controls="runner" aria-expanded="false" aria-keyshortcuts="e">
+    <span aria-hidden="true">▶</span> Run in your browser
+  </button>
+  <span class="run-note">Edit the function or the examples and run the doctests here, on Python {pyodide.python}. Python loads only when you click (about 7 MB, cached after the first time).</span>
+</div>
+
+<section class="panel runner" id="runner" hidden aria-labelledby="runner-title" data-pyodide={pyodide.version} data-pagefind-ignore>
+  <div class="panel-head">
+    <span class="file" id="runner-title">python {pyodide.python} · in your browser</span>
+    <span class="spacer"></span>
+    <button class="copy" type="button" id="run-reset">Reset</button>
+  </div>
+  <p class="run-progress" id="run-progress">Loading Python {pyodide.python} in your browser (≈7 MB, cached after the first time)…</p>
+  <div class="editors">
+    <div class="ed">
+      <label class="ed-label" for="run-code">{file}</label>
+      <textarea id="run-code" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" rows={Math.min(code.trimEnd().split('\n').length, 24)} aria-describedby="run-help"
+        >{code}</textarea
+      >
+    </div>
+    <div class="ed">
+      <label class="ed-label" for="run-ex">examples · doctest</label>
+      <textarea id="run-ex" spellcheck="false" autocapitalize="off" autocomplete="off" wrap="off" rows={Math.min(examples.trimEnd().split('\n').length, 16)} aria-describedby="run-help"
+        >{examples}</textarea
+      >
+    </div>
+  </div>
+  <pre class="repl run-out" id="run-out" aria-label="Results"></pre>
+  <div class="bar">
+    <button type="button" id="run-go" disabled>Run <kbd class="mod">Ctrl</kbd><kbd>↵</kbd></button>
+    <span id="run-status" class="run-status" role="status" aria-live="polite"></span>
+  </div>
+  <p class="visually-hidden" id="run-help">Tab inserts four spaces. Press Escape, then Tab, to leave the editor. Control or Command plus Enter runs the examples.</p>
+</section>

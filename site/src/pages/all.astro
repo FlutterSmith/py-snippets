@@ -1,0 +1,47 @@
+---
+import SnippetRow from '../components/SnippetRow.astro';
+import Base from '../layouts/Base.astro';
+import { categories, rangeShort, snippets, url } from '../lib/site';
+---
+
+<Base title="All snippets" description={`All ${snippets.length} snippets, by package. Every example is a doctest, run on Python ${rangeShort()}.`}>
+  <header class="page-head">
+    <span class="label">Everything · by package</span>
+    <h1>All {snippets.length} snippets</h1>
+    <p>Every example on every page is a doctest, run on Python {rangeShort()}.</p>
+    <ul class="chips-nav" aria-label="Packages">
+      {
+        categories.map((c) => (
+          <li>
+            <a href={`#${c.id}`}>
+              {c.id}/ <span>{c.count}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </header>
+  <div class="list">
+    {
+      categories.map((c) => (
+        <section class="pkg" id={c.id} aria-labelledby={`pkg-${c.id}`}>
+          <div class="sec-h">
+            <h2 class="pkg-h" id={`pkg-${c.id}`}>
+              <a href={url(`c/${c.id}/`)}>
+                pysnippets.<b>{c.id}</b>
+              </a>
+            </h2>
+            <span class="label">{c.count} modules</span>
+          </div>
+          <ul class="rows">
+            {snippets
+              .filter((s) => s.category === c.id)
+              .map((s) => (
+                <SnippetRow s={s} />
+              ))}
+          </ul>
+        </section>
+      ))
+    }
+  </div>
+</Base>

@@ -1,0 +1,37 @@
+---
+import SnippetRow from '../../components/SnippetRow.astro';
+import Base from '../../layouts/Base.astro';
+import { snippets, tags, url } from '../../lib/site';
+
+export function getStaticPaths() {
+  return Object.entries(tags)
+    .filter(([tag]) => snippets.some((s) => s.tags.includes(tag)))
+    .map(([tag, description]) => ({ params: { tag }, props: { tag, description } }));
+}
+
+const { tag, description } = Astro.props;
+const list = snippets.filter((s) => s.tags.includes(tag));
+const used = Object.keys(tags).filter((t) => snippets.some((s) => s.tags.includes(t)));
+---
+
+<Base title={`#${tag}`} description={`${description}: ${list.length} typed Python functions with doctests.`}>
+  <header class="page-head">
+    <span class="label">Tag · {list.length} {list.length === 1 ? 'snippet' : 'snippets'}</span>
+    <h1>#{tag}</h1>
+    <p>{description}.</p>
+    <ul class="chips-nav" aria-label="Tags">
+      {
+        used.map((t) => (
+          <li>
+            <a href={url(`t/${t}/`)} aria-current={t === tag ? 'page' : undefined}>
+              #{t}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </header>
+  <ul class="rows list">
+    {list.map((s) => <SnippetRow s={s} />)}
+  </ul>
+</Base>

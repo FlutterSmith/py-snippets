@@ -1,0 +1,62 @@
+---
+import Base from '../layouts/Base.astro';
+import { exampleCount, pyodide, rangeShort, site, snippets, stdlibRows, idiomRows, url } from '../lib/site';
+---
+
+<Base title="About" description="What “still pass” means, how CI checks it, and where the material comes from.">
+  <article class="about">
+    <header class="page-head">
+      <span class="label">About</span>
+      <h1>What “still pass” means.</h1>
+    </header>
+    <div class="prose">
+      <p>
+        Snippet sites go stale quietly. A result written in a comment looks the same whether or not it is still true. Here, every example is a
+        doctest: the <code class="i">&gt;&gt;&gt;</code> line is run, and its output has to match what the page shows, character for character.
+      </p>
+
+      <h2>How it is checked</h2>
+      <ul>
+        <li>
+          Each of the {snippets.length} functions lives in a real module, <code class="i">src/pysnippets/&lt;package&gt;/&lt;module&gt;.py</code>. Its
+          docstring holds the examples you see on the page, {exampleCount} in all.
+        </li>
+        <li>
+          CI runs <code class="i">pytest --doctest-modules</code> on Python {site.pythons.join(', ')}. A page whose examples fail on any of them doesn't
+          ship.
+        </li>
+        <li>
+          The code is type-checked with <code class="i">mypy --strict</code> and linted with <code class="i">ruff</code>, and the proofs on the
+          <a href={url('stdlib/')}>stdlib cheat sheet</a> ({stdlibRows.length} rows) and the <a href={url('idioms/')}>JS idioms</a> page
+          ({idiomRows.length} rows) run as doctests too.
+        </li>
+        <li>
+          The code and examples on each page are rebuilt from the module by <code class="i">snip sync</code>, and CI fails if they differ, so
+          the page and the tested file can't drift apart.
+        </li>
+        <li>
+          The ✓ next to an example means it passed on Python {rangeShort()}. The <b>Run in your browser</b> button runs the same doctests on Python
+          {pyodide.python} through <a href="https://pyodide.org/">Pyodide</a>, and turns them red if you break something.
+        </li>
+      </ul>
+
+      <h2>Where the material comes from</h2>
+      <p>
+        Most snippets are adapted from <a href={site.upstreamRepo}>30-seconds-of-python</a> by the 30 seconds of code contributors, used under
+        <a href={site.ccby}>CC BY 4.0</a>. Each adapted page names its originals and says what changed. Many were rewritten: typed, made to handle
+        empty input, or replaced by a standard library call. <a href={site.attribution}>ATTRIBUTION.md</a> accounts for all {site.upstreamTotal}
+        originals.
+      </p>
+      <p>
+        py-snippets is an independent project by Ahmed Hamdy. It is not affiliated with or endorsed by 30 seconds of code, and uses none of its
+        names, logos or images as branding.
+      </p>
+
+      <h2>License</h2>
+      <p>
+        The project is MIT licensed. Adapted material stays under CC BY 4.0. The source, the tests and the site are on
+        <a href={site.repo}>GitHub</a>.
+      </p>
+    </div>
+  </article>
+</Base>

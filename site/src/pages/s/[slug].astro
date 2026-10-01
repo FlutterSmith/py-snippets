@@ -1,0 +1,177 @@
+---
+import { getCollection } from 'astro:content';
+
+import RunPanel from '../../components/RunPanel.astro';
+import SnippetRow from '../../components/SnippetRow.astro';
+import Base from '../../layouts/Base.astro';
+import { categoryLabel, md, pkg, plain, type SnippetMeta, site, snippet, snippets, snippetUrl, url, versions } from '../../lib/site';
+
+export async function getStaticPaths() {
+  const published = new Set(snippets.map((s) => s.slug));
+  const entries = await getCollection('snippets');
+  return entries.filter((e) => published.has(e.id)).map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const html = entry.rendered?.html ?? '';
+// Astro logs Markdown render errors and carries on. A snippet page without a
+// body, a function panel or a doctest session must fail the build instead.
+if (!html.trim()) throw new Error(`Snippet "${entry.id}" rendered empty. See the [content] errors above.`);
+if (!/data-kind="code"/.test(html)) throw new Error(`Snippet "${entry.id}" has no \`<?snippet?>\` python fence.`);
+if (!/data-kind="repl"/.test(html) || !html.includes('data-run-slot')) {
+  throw new Error(`Snippet "${entry.id}" has no \`<?snippet part="examples"?>\` pycon fence.`);
+}
+const [before, after] = html.split(/<div data-run-slot(?:="")?><\/div>/);
+
+const s = snippet(entry.id) as SnippetMeta;
+if (!s.examples.length) throw new Error(`Snippet "${entry.id}" has no doctest examples in meta.json.`);
+const previous = s.previous ? snippet(s.previous) : undefined;
+const next = s.next ? snippet(s.next) : undefined;
+const related = s.related.map(snippet).filter((r): r is SnippetMeta => !!r);
+const range = versions(s.since);
+const rangeText = range.length > 1 ? `${range[0]} to ${range[range.length - 1]}` : range[0];
+const names = s.functions.map((f) => f.name);
+const importLine = `from ${s.import} import ${names.join(', ')}`;
+const fname = (m?: SnippetMeta) => m?.functions[0].name ?? '';
+---
+
+<Base title={s.title} description={plain(s.summary)} slug={s.slug} page="snippet">
+  <article class="snip" data-pagefind-body data-pagefind-meta={`pkg:${pkg(s)}`}>
+    <div class="crumbs" data-pagefind-ignore>
+      <span class="path"
+        ><a href={url()}>pysnippets</a>.<a href={url(`c/${s.category}/`)}>{s.category}</a>.<span>{s.module.split('/').pop()!.replace(/\.py$/, '')}</span></span
+      >
+      <nav aria-label="Previous and next snippet">
+        {previous && <a href={snippetUrl(previous.slug)} data-rel="prev" rel="prev">← {fname(previous)}</a>}
+        {next && <a href={snippetUrl(next.slug)} data-rel="next" rel="next">{fname(next)} →</a>}
+      </nav>
+    </div>
+
+    <h1 data-pagefind-meta="title">{s.title}</h1>
+    <ul class="sigs" aria-label={names.length > 1 ? 'Functions' : 'Function'}>
+      {
+        s.functions.map((f, i) => (
+          <li>
+            <code class="sig-full" style={i === 0 ? `view-transition-name: sig-${s.slug}` : undefined}>
+              <b>{f.name}</b>
+              <span class="args">{f.signature.slice(f.name.length)}</span>
+            </code>
+            {names.length > 1 && <span class="fsum" set:html={md(f.summary)} />}
+          </li>
+        ))
+      }
+    </ul>
+    <p class="summary" set:html={md(s.summary)} />
+    <p class="meta-line" data-pagefind-ignore>
+      <a href={url(`c/${s.category}/`)}>{categoryLabel(s.category)}</a>
+      {s.tags.map((t) => <a href={url(`t/${t}/`)}>#{t}</a>)}
+      <span>{s.complexity.match(/^O\([^)]*\)/)?.[0] ?? s.complexity} time</span>
+      <span class="ok">✓ {s.examples.length} examples pass on {range.length > 1 ? `${range[0]}–${range[range.length - 1]}` : range[0]}</span>
+    </p>
+
+    <div class="prose">
+      <Fragment set:html={before} />
+      <RunPanel s={s} />
+      <Fragment set:html={after} />
+    </div>
+
+    <p class="cx"><b>Complexity:</b> {s.complexity}</p>
+
+    {
+      s.stdlib && (
+        <aside class="stdlib-strip" aria-label="The stdlib may already do this">
+          <span class="label">Stdlib</span>
+          <span>
+            <b>The stdlib may already do this.</b> <span set:html={md(s.stdlib)} />{' '}
+            <a href={url('stdlib/')}>Cheat sheet →</a>
+          </span>
+        </aside>
+      )
+    }
+
+    {
+      s.fixes && (
+        <aside class="fixes" aria-label="Fixed from the original">
+          <span class="hand" aria-hidden="true">fixed</span>
+          <p>
+            <b>Fixed from the original.</b> <span set:html={md(s.fixes)} />
+          </p>
+        </aside>
+      )
+    }
+
+    <ul class="chips" aria-label={`Doctests pass on Python ${rangeText}`} data-pagefind-ignore>
+      {
+        range.map((v) => (
+          <li class="chip">
+            {v}
+            <b aria-hidden="true">✓</b>
+            <span class="visually-hidden">passes</span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="usage" data-pagefind-ignore>
+      <span class="label">Import</span>
+      <code class="use" id="import-line">{importLine}</code>
+      <button type="button" class="tool copy-line" data-copy-text={importLine} aria-label="Copy the import line">Copy</button>
+      <span class="use-note">No dependencies: copy <a href={`${site.repo}/blob/main/src/pysnippets/${s.module}`}>{s.module.split('/').pop()}</a> into your project, or clone the repo.</span>
+    </div>
+
+    {
+      related.length > 0 && (
+        <section class="related" data-pagefind-ignore aria-labelledby="related-label">
+          <div class="sec-h">
+            <h2 class="label" id="related-label">Related</h2>
+          </div>
+          <ul class="rows">
+            {related.map((r) => (
+              <SnippetRow s={r} />
+            ))}
+          </ul>
+        </section>
+      )
+    }
+
+    <nav class="snip-foot" aria-label="More snippets" data-pagefind-ignore>
+      {
+        previous && (
+          <a href={snippetUrl(previous.slug)}>
+            <span class="label">← Previous</span>
+            <span class="t">{fname(previous)}()</span>
+          </a>
+        )
+      }
+      {
+        next && (
+          <a class="next" href={snippetUrl(next.slug)}>
+            <span class="label">Next →</span>
+            <span class="t">{fname(next)}()</span>
+          </a>
+        )
+      }
+    </nav>
+
+    <p class="credit" data-pagefind-ignore>
+      {
+        s.origin ? (
+          <>
+            Adapted from{' '}
+            {s.origin.upstream.map((u, i) => (
+              <>
+                {i > 0 && (i === s.origin!.upstream.length - 1 ? ' and ' : ', ')}
+                <a href={u.url}>{u.name}</a>
+              </>
+            ))}{' '}
+            in <a href={site.upstreamRepo}>30-seconds-of-python</a> by the 30 seconds of code contributors,{' '}
+            <a href={site.ccby}>CC BY 4.0</a>. Changed: {s.origin.change}{' '}
+          </>
+        ) : (
+          <>Written for this project. </>
+        )
+      }
+      <a href={`${site.repo}/edit/main/content/snippets/${s.slug}/index.md`}>Suggest an edit</a>.
+    </p>
+  </article>
+</Base>

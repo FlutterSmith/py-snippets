@@ -1,0 +1,82 @@
+---
+import Panel from '../components/Panel.astro';
+import Base from '../layouts/Base.astro';
+import { idiomRows, md, rangeShort, site } from '../lib/site';
+
+const groups = [...new Set(idiomRows.map((r) => r.group))].map((g) => ({
+  name: g,
+  id: g.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+  rows: idiomRows.filter((r) => r.group === g),
+}));
+---
+
+<Base title="Python idioms for JavaScript developers" description={`${idiomRows.length} helpers you'd import in JavaScript, and the Python you write instead. Every proof is a doctest.`} page="idioms">
+  <div data-pagefind-body data-pagefind-meta="pkg:idioms">
+    <header class="page-head ledger-head">
+      <span class="label" data-pagefind-ignore>{idiomRows.length} idioms · every proof runs in CI</span>
+      <h1 data-pagefind-meta="title">Python idioms for JavaScript developers.</h1>
+      <p>
+        In JavaScript you'd import a helper for these. In Python they are a slice, a comprehension or one call. The proof under each row is a
+        doctest, run on Python {rangeShort()}.
+      </p>
+      <ul class="chips-nav" aria-label="Groups" data-pagefind-ignore>
+        {
+          groups.map((g) => (
+            <li>
+              <a href={`#${g.id}`}>
+                {g.name} <span>{g.rows.length}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </header>
+
+    {
+      groups.map((g) => (
+        <section class="idiom-group" id={g.id} aria-labelledby={`g-${g.id}`}>
+          <h2 class="group-h" id={`g-${g.id}`}>
+            {g.name}
+          </h2>
+          <div class="ledger ledger-js" role="table" aria-label={`${g.name}: JavaScript helper, Python`}>
+            <div class="lrow lhead" role="row">
+              <span role="columnheader">JavaScript helper</span>
+              <span role="columnheader">Python</span>
+            </div>
+            {g.rows.map((r) => (
+              <div class="lrow" role="row" id={r.id}>
+                <span class="js" role="cell">
+                  <code>{r.js}</code>
+                  <span class="arrow" aria-hidden="true">
+                    →
+                  </span>
+                  {r.upstream.length > 0 && (
+                    <span class="from" data-pagefind-ignore>
+                      from{' '}
+                      {r.upstream.map((u, i) => (
+                        <>
+                          {i > 0 && ', '}
+                          <a href={u.url}>{u.name}</a>
+                        </>
+                      ))}
+                    </span>
+                  )}
+                </span>
+                <span class="new" role="cell">
+                  <code class="use">{r.python}</code>
+                  {r.note && <span class="note-t" set:html={md(r.note)} />}
+                  <Panel kind="proof" code={r.example} range={site.pythons} />
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      ))
+    }
+
+    <p class="credit" data-pagefind-ignore>
+      The JavaScript-style names come from <a href={site.upstreamRepo}>30-seconds-of-python</a> by the 30 seconds of code contributors,
+      <a href={site.ccby}>CC BY 4.0</a>, where each was a separate snippet. Not affiliated with 30 seconds of code.
+    </p>
+  </div>
+</Base>

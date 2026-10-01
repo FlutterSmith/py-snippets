@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import { url } from '../lib/site';
+---
+
+<Base title="Random snippet" description="Opens a random snippet." noindex>
+  <header class="page-head">
+    <span class="label">Random</span>
+    <h1>Picking a snippet…</h1>
+    <p>If nothing happens, <a href={url('all/')}>browse all snippets</a> instead.</p>
+  </header>
+  <script>
+    const slugs: string[] = JSON.parse(document.getElementById('snip-slugs')?.textContent ?? '[]');
+    const base = document.documentElement.dataset.base ?? '/';
+    if (slugs.length) location.replace(`${base}s/${slugs[Math.floor(Math.random() * slugs.length)]}/`);
+  </script>
+</Base>
